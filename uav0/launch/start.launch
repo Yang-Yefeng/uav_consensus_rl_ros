@@ -1,0 +1,17 @@
+<launch>
+	<!-- MAVROS posix SITL environment launch script -->
+    <!-- launches Gazebo environment and 2x: MAVROS, PX4 SITL, and spawns vehicle -->
+
+    <include file="$(find mavros)/launch/node.launch">
+		<arg name="pluginlists_yaml" value="$(find mavros)/launch/px4_pluginlists.yaml" />
+		<arg name="config_yaml" value="$(find mavros)/launch/px4_config.yaml" />
+
+		<arg name="fcu_url" value="udp://:14540@localhost:14557" /> <!--/dev/ttyACM0:57600--> <!--tcp://192.168.10.27:5760-->
+		<arg name="gcs_url" value="" />
+		<arg name="tgt_system" value="1" />
+		<arg name="tgt_component" value="1" />
+		<arg name="log_output" value="screen" />
+		<arg name="fcu_protocol" value="v2.0" />
+		<arg name="respawn_mavros" default="false" />
+	</include>
+</launch>

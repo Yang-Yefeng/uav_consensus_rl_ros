@@ -1,0 +1,9 @@
+std_msgs/Bool are_you_ok
+float32[] position
+float32[] velocity
+float32[] obs
+float32[] ref
+float32[] dot_ref
+float32[] nu
+float32[] dot_nu
+string name

@@ -55,9 +55,9 @@ class UAV_ROS:
         # 2: control by FNTSMC ([phi_d theta_d psi_d throttle])
         # 3: finish and switch OFFBOARD to position
         
-        self.state_sub = rospy.Subscriber("uav0/mavros/state", State, callback=self.state_cb)
+        self.state_sub = rospy.Subscriber("/uav0/mavros/state", State, callback=self.state_cb)
         
-        self.uav_vel_sub = rospy.Subscriber("uav0/mavros/local_position/odom", Odometry, callback=self.uav_odom_cb)
+        self.uav_vel_sub = rospy.Subscriber("/uav0/mavros/local_position/odom", Odometry, callback=self.uav_odom_cb)
         self.uav_battery_sub = rospy.Subscriber("uav0/mavros/battery", BatteryState, callback=self.uav_battery_cb)
         '''topic subscribe'''
         

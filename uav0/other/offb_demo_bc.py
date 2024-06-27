@@ -15,15 +15,16 @@ def state_cb(msg):
 if __name__ == "__main__":
     rospy.init_node("offb_node_py")
 
-    state_sub = rospy.Subscriber("uav0/mavros/state", State, callback = state_cb)
+    state_sub = rospy.Subscriber("/uav0/mavros/state", State, callback = state_cb)
 
-    local_pos_pub = rospy.Publisher("uav0/mavros/setpoint_position/local", PoseStamped, queue_size=1000)
+    local_pos_pub = rospy.Publisher("/uav0/mavros/setpoint_position/local", PoseStamped, queue_size=1000)
 
-    rospy.wait_for_service("/uav0/mavros/cmd/arming")
+    rospy.wait_for_service("uav0/mavros/cmd/arming")
     arming_client = rospy.ServiceProxy("uav0/mavros/cmd/arming", CommandBool)
 
-    rospy.wait_for_service("/uav0/mavros/set_mode")
+    rospy.wait_for_service("uav0/mavros/set_mode")
     set_mode_client = rospy.ServiceProxy("uav0/mavros/set_mode", SetMode)
+
 
     # Setpoint publishing MUST be faster than 2Hz
     rate = rospy.Rate(100)
@@ -65,8 +66,6 @@ if __name__ == "__main__":
             if(not current_state.armed and (rospy.Time.now() - last_req) > rospy.Duration(1.0)):
                 if(arming_client.call(arm_cmd).success == True):
                     rospy.loginfo("Vehicle armed")
-                else:
-                    rospy.loginfo("Fuck your mother.")
 
                 last_req = rospy.Time.now()
 

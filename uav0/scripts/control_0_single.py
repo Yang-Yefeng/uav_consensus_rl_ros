@@ -11,7 +11,7 @@ DT = 0.01
 pos_ctrl_param = fntsmc_param(
     k1=np.array([0.3, 0.3, 1.0]),
     k2=np.array([0.5, 0.5, 1]),
-    k3=np.array([0.05, 0.05, 0.05]),        # 补偿观测器的，小点就行
+    k3=np.array([1.5, 1.5, 1.5]),        # 补偿观测器的，小点就行
     k4=np.array([6, 6, 6]),
     alpha1=np.array([1.01, 1.01, 1.01]),
     alpha2=np.array([1.01, 1.01, 1.01]),
@@ -23,7 +23,7 @@ pos_ctrl_param = fntsmc_param(
 if __name__ == "__main__":
     rospy.init_node("uav0")
     
-    uav_ros = UAV_ROS(m=0.722, dt=DT, time_max=20, pos0=np.array([1.5, 0., 1.0]), offset=np.array([1.5, 0., 0.]))
+    uav_ros = UAV_ROS(m=0.722, dt=DT, time_max=20, pos0=np.array([1.0, 0., 1.0]), offset=np.array([0., 0., 0.]))
     uav_ros.connect()   # 连接
     uav_ros.offboard_arm()      # OFFBOARD 模式 + 电机解锁
     
@@ -42,11 +42,11 @@ if __name__ == "__main__":
     '''define controllers and observers'''
     
     ra = np.array([1.0, 1.0, 0.3, deg2rad(0)])
-    rp = np.array([6, 6, 8, 10])  # xd yd zd psid 周期
+    rp = np.array([10, 10, 10, 10])  # xd yd zd psid 周期
     rba = np.array([0, 0, 1, deg2rad(0)])  # xd yd zd psid 幅值偏移
     rbp = np.array([np.pi / 2, 0, 0, 0])  # xd yd zd psid 相位偏移
     
-    USE_GAZEBO = True  # 使用gazebo时，无人机质量和悬停油门可能会不同
+    USE_GAZEBO = False  # 使用gazebo时，无人机质量和悬停油门可能会不同
     USE_OBS = True
     
     CONTROLLER = 'FNTSMC'
@@ -76,7 +76,7 @@ if __name__ == "__main__":
             de = uav_ros.dot_eta() - dot_eta_d
             psi_d = ref[3]
             
-            if USE_OBS:
+            if USE_OBS and t_now > 2:
                 syst_dynamic = -uav_ros.kt / uav_ros.m * uav_ros.dot_eta() + uav_ros.A()
                 observe_xy = obs_xy.observe(e=uav_ros.eta()[0:2], syst_dynamic=syst_dynamic[0:2])
                 observe_z = obs_z.observe(e=uav_ros.eta()[2], syst_dynamic=syst_dynamic[2])
@@ -93,10 +93,14 @@ if __name__ == "__main__":
                 phi_d, theta_d, uf = 0., 0., 0.
             else:
                 if CONTROLLER == 'RL':
+                    print('fuck1')
+                    t_1 = rospy.Time.now().to_sec() * 1000
                     pos_s = np.concatenate((e, de))
                     param_pos = uav_ros.opt_pos.evaluate(uav_ros.pos_norm(pos_s))
                     hehe = np.array([1, 1, 1, 1, 1, 1, 5, 5, 5]).astype(float)
                     controller.get_param_from_actor(param_pos * hehe, update_z=False)
+                    t_2 = rospy.Time.now().to_sec() * 1000
+                    print("fuck2", t_2 - t_1)
                 
                 '''3. generate phi_d, theta_d, throttle'''
                 controller.control_update_outer(e_eta=e,

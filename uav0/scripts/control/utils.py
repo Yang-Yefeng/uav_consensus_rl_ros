@@ -87,6 +87,32 @@ def ref_uav_sequence(dt: float,
     return _r, _dr, _ddr
 
 
+def ref_uav_sequence_with_dead(dt: float,
+                               tm: float,
+                               t_miemie: float,
+                               amplitude: np.ndarray,
+                               period: np.ndarray,
+                               bias_a: np.ndarray,
+                               bias_phase: np.ndarray):
+    w = 2 * np.pi / period
+    N = int(np.round(tm / dt))
+    _r = np.zeros((N, 4))
+    _dr = np.zeros((N, 4))
+    _ddr = np.zeros((N, 4))
+    _r0 = amplitude * np.sin(bias_phase) + bias_a
+    for i in range(N):
+        _r[i, :] = amplitude * np.sin(w * i * dt + bias_phase) + bias_a
+        _dr[i, :] = amplitude * w * np.cos(w * i * dt + bias_phase)
+        _ddr[i, :] = -amplitude * w ** 2 * np.sin(w * i * dt + bias_phase)
+    
+    N1 = int(np.round(t_miemie / dt))
+    _r_miemie = np.tile(_r0, (N1, 1))
+    _dr_miemie = np.zeros((N1, 4))
+    _ddr_miemie = np.zeros((N1, 4))
+    
+    return np.concatenate((_r_miemie, _r)), np.concatenate((_dr_miemie, _dr)), np.concatenate((_ddr_miemie, _ddr))
+
+
 def offset_uav_sequence(dt: float, tm: float, A: np.ndarray, T: np.ndarray, ba: np.ndarray, bp: np.ndarray):
     N = int(np.round(tm / dt))
     _off = np.zeros((N, 3))

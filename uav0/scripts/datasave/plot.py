@@ -137,9 +137,9 @@ if __name__ == '__main__':
     uav_pos = uav_stateData[0: L - 2, 1: 4]
     uav_angle = uav_stateData[0: L - 2, 7: 10] * 180 / np.pi
     plot_pos()
-    plot_phi()
-    plot_theta()
-    plot_psi()
+    # plot_phi()
+    # plot_theta()
+    # plot_psi()
     # # plot_throttle()
     # plot_thrust()
     plot_obs()

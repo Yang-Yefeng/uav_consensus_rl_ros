@@ -33,17 +33,27 @@ class fntsmc:
                  alpha2: np.ndarray = np.array([1.01, 1.01, 1.01]),
                  dim: int = 3,
                  dt: float = 0.01):
-        self.k1 = k1 if param is None else param.k1
-        self.k2 = k2 if param is None else param.k2
-        self.k3 = k3 if param is None else param.k3
-        self.k4 = k4 if param is None else param.k4
-        self.alpha1 = alpha1 if param is None else param.alpha1
-        self.alpha2 = alpha2 if param is None else param.alpha2
+        self.k1 = k1.copy() if param is None else param.k1.copy()
+        self.k2 = k2.copy() if param is None else param.k2.copy()
+        self.k3 = k3.copy() if param is None else param.k3.copy()
+        self.k4 = k4.copy() if param is None else param.k4.copy()
+        self.alpha1 = alpha1.copy() if param is None else param.alpha1.copy()
+        self.alpha2 = alpha2.copy() if param is None else param.alpha2.copy()
         self.dt = dt if param is None else param.dt
         self.dim = dim if param is None else param.dim
         self.s = np.zeros(self.dim)
         self.control_in = np.zeros(self.dim)
         self.control_out = np.zeros(self.dim)
+    
+    def print_param(self):
+        print('========================')
+        print('k1: ', self.k1)
+        print('k2: ', self.k2)
+        print('k3: ', self.k3)
+        print('k4: ', self.k4)
+        print('alpha1: ', self.alpha1)
+        print('alpha2: ', self.alpha2)
+        print('========================\n')
     
     @staticmethod
     def sig(x, a, kt=5):

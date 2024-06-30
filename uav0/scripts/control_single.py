@@ -1,29 +1,30 @@
 #! /usr/bin/python3
 import os, rospy
-
 from control.uav_ros import UAV_ROS
 from control.FNTSMC import fntsmc_param, fntsmc
 from control.observer import robust_differentiator_3rd as rd3
 from control.collector import data_collector
 from control.utils import *
 
+cur_path = os.path.dirname(os.path.abspath(__file__))
+
 DT = 0.01
 pos_ctrl_param = fntsmc_param(
-    k1=np.array([0.3, 0.3, 1.0]),
-    k2=np.array([0.5, 0.5, 1]),
-    k3=np.array([1.5, 1.5, 1.5]),        # 补偿观测器的，小点就行
-    k4=np.array([6, 6, 6]),
-    alpha1=np.array([1.01, 1.01, 1.01]),
-    alpha2=np.array([1.01, 1.01, 1.01]),
+    k1=np.array([0.3, 0.3, 1.0]).astype(float),
+    k2=np.array([0.5, 0.5, 1]).astype(float),
+    k3=np.array([1.5, 1.5, 1.5]).astype(float),        # 补偿观测器的，小点就行
+    k4=np.array([6, 6, 6]).astype(float),
+    alpha1=np.array([1.01, 1.01, 1.01]).astype(float),
+    alpha2=np.array([1.01, 1.01, 1.01]).astype(float),
     dim=3,
     dt=DT
 )
 
 
 if __name__ == "__main__":
-    rospy.init_node("uav0")
+    rospy.init_node("uav0_control_single")
     
-    uav_ros = UAV_ROS(m=0.722, dt=DT, time_max=20, pos0=np.array([1.0, 0., 1.0]), offset=np.array([0., 0., 0.]))
+    uav_ros = UAV_ROS(m=0.722, dt=DT, time_max=20, pos0=np.array([0.0, 0., 1.0]), offset=np.array([0., 0., 0.]))
     uav_ros.connect()   # 连接
     uav_ros.offboard_arm()      # OFFBOARD 模式 + 电机解锁
     
@@ -38,7 +39,9 @@ if __name__ == "__main__":
                 omega=[[1.2, 1.2, 1.2]],
                 dim=1, dt=DT)
     controller = fntsmc(pos_ctrl_param)
-    data_record = data_collector(N=round(uav_ros.time_max / DT))
+    t_MIEMIE = 5
+    data_record = data_collector(N=round((uav_ros.time_max + t_MIEMIE) / DT))
+    ctrl_param_record = None
     '''define controllers and observers'''
     
     ra = np.array([1.0, 1.0, 0.3, deg2rad(0)])
@@ -54,7 +57,10 @@ if __name__ == "__main__":
     # CONTROLLER = 'PX4-PID'
     # CONTROLLER = 'MPC'
     
-    ref_all, dot_ref_all, dot2_ref_all = ref_uav_sequence(DT, uav_ros.time_max, ra, rp, rba, rbp)
+    e = np.zeros(3).astype(float)
+    de = np.zeros(3).astype(float)
+    
+    ref_all, dot_ref_all, dot2_ref_all = ref_uav_sequence_with_dead(DT, uav_ros.time_max, t_MIEMIE, ra, rp, rba, rbp)
     
     t0 = rospy.Time.now().to_sec()
     while not rospy.is_shutdown():
@@ -68,7 +74,10 @@ if __name__ == "__main__":
                 print('time: ', t_now)
             
             '''1. generate reference command and uncertainty'''
-            ref, dot_ref, dot2_ref = ref_all[uav_ros.n], dot_ref_all[uav_ros.n], dot2_ref_all[uav_ros.n]
+            if t_now < t_MIEMIE:
+                ref, dot_ref, dot2_ref = ref_all[0], np.zeros(3), np.zeros(3)
+            else:
+                ref, dot_ref, dot2_ref = ref_all[uav_ros.n], dot_ref_all[uav_ros.n], dot2_ref_all[uav_ros.n]
             
             '''2. generate outer-loop reference signal 'eta_d' and its 1st, 2nd, and 3rd-order derivatives'''
             eta_d, dot_eta_d, dot2_eta_d = ref[0: 3], dot_ref[0: 3], dot2_ref[0: 3]
@@ -93,14 +102,11 @@ if __name__ == "__main__":
                 phi_d, theta_d, uf = 0., 0., 0.
             else:
                 if CONTROLLER == 'RL':
-                    print('fuck1')
-                    t_1 = rospy.Time.now().to_sec() * 1000
-                    pos_s = np.concatenate((e, de))
-                    param_pos = uav_ros.opt_pos.evaluate(uav_ros.pos_norm(pos_s))
-                    hehe = np.array([1, 1, 1, 1, 1, 1, 5, 5, 5]).astype(float)
-                    controller.get_param_from_actor(param_pos * hehe, update_z=False)
-                    t_2 = rospy.Time.now().to_sec() * 1000
-                    print("fuck2", t_2 - t_1)
+                    ctrl_param_np = np.array(uav_ros.ctrl_param.data).astype(float)
+                    if t_now > t_MIEMIE:        # 前几秒过渡一下
+                        controller.get_param_from_actor(ctrl_param_np, update_z=True)
+                    # controller.print_param()
+                    ctrl_param_record = np.atleast_2d(ctrl_param_np) if ctrl_param_record is None else np.vstack((ctrl_param_record, ctrl_param_np))
                 
                 '''3. generate phi_d, theta_d, throttle'''
                 controller.control_update_outer(e_eta=e,
@@ -129,10 +135,14 @@ if __name__ == "__main__":
             
             if data_record.index == data_record.N:
                 print('Data collection finish. Switching to offboard position...')
-                save_path = os.getcwd() + '/src/uav_consensus_rl_ros/uav0/scripts/datasave/uav0/'
+                save_path = cur_path + '/datasave/uav0/'
                 if not os.path.exists(save_path):
                     os.mkdir(save_path)
                 data_record.package2file(path=save_path)
+                if CONTROLLER == 'RL':
+                    pd.DataFrame(ctrl_param_record,
+                                 columns=['k1x', 'k1y', 'k1z', 'k2x', 'k2y', 'k2z', 'k4x', 'k4y', 'k4z']). \
+                        to_csv(save_path + 'ctrl_param.csv', sep=',', index=False)
                 uav_ros.global_flag = 3
         elif uav_ros.global_flag == 3:  # finish, back to position
             uav_ros.pose.pose.position.x = 0
@@ -145,4 +155,6 @@ if __name__ == "__main__":
             uav_ros.pose.pose.position.z = 0.5
             uav_ros.local_pos_pub.publish(uav_ros.pose)
             print('working mode error...')
+        uav_ros.nn_input.data = np.concatenate((e, de)).tolist()
+        uav_ros.nn_input_state_pub.publish(uav_ros.nn_input)
         uav_ros.rate.sleep()

@@ -1,21 +1,16 @@
-import numpy as np
-import os, sys
-
+#! /usr/bin/python3
 import rospy
 from mavros_msgs.msg import State, AttitudeTarget
 from mavros_msgs.srv import CommandBool, CommandBoolRequest, SetMode, SetModeRequest
 from geometry_msgs.msg import PoseStamped
 from sensor_msgs.msg import BatteryState
-from tf.transformations import quaternion_matrix
+from std_msgs.msg import Float32, Float32MultiArray
 
-sys.path.append(os.getcwd() + '/src/uav_consensus_rl_ros/uav0/scripts/')
-sys.path.append(os.getcwd() + '/src/uav_consensus_rl_ros/uav0/scripts/control/')
-
-from utils import *
+from control.utils import *
 
 
 class UAV_ROS:
-    def __init__(self, m: float = 1.5, dt: float = 0.01, time_max: float = 30., pos0: np.ndarray = np.zeros(3), offset:np.ndarray=np.zeros(3)):
+    def __init__(self, m: float = 1.5, dt: float = 0.01, time_max: float = 30., pos0: np.ndarray = np.zeros(3), offset: np.ndarray = np.zeros(3)):
         self.m = m  # 无人机质量
         self.g = 9.8
         self.kt = 1e-3
@@ -39,12 +34,14 @@ class UAV_ROS:
         self.theta_d = 0.
         '''control'''
         
-        self.opt_pos = PPOActor_Gaussian(state_dim=6, action_dim=9)
-        optPathPos = os.getcwd() + '/src/uav_consensus_rl_ros/uav0/nets/pos_maybe_good_1/'  # 最好的
-        self.opt_pos.load_state_dict(torch.load(optPathPos + 'actor'))
-        self.pos_norm = get_normalizer_from_file(6, optPathPos, 'state_norm.csv')
+        # self.opt_pos = PPOActor_Gaussian(state_dim=6, action_dim=9)
+        # optPathPos = os.getcwd() + '/src/uav_consensus_rl_ros/uav0/nets/pos_maybe_good_1/'  # 最好的
+        # self.opt_pos.load_state_dict(torch.load(optPathPos + 'actor'))
+        # self.pos_norm = get_normalizer_from_file(6, optPathPos, 'state_norm.csv')
         
         self.current_state = State()  # monitor uav status
+        self.ctrl_param = Float32MultiArray(data=[0., 0., 0., 0., 0., 0., 0., 0., 0.])  # 9 维
+        self.nn_input = Float32MultiArray(data=[0., 0., 0., 0., 0., 0.]) # 6 维
         self.pose = PoseStamped()  # publish offboard [x_d y_d z_d] cmd
         self.uav_odom = Odometry()  # subscribe uav state x y z vx vy vz phi theta psi p q r
         self.ctrl_cmd = AttitudeTarget()  # publish offboard expected [phi_d theta_d psi_d throttle] cmd
@@ -56,12 +53,14 @@ class UAV_ROS:
         # 3: finish and switch OFFBOARD to position
         
         self.state_sub = rospy.Subscriber("/uav0/mavros/state", State, callback=self.state_cb)
+        self.ctrl_param_sub = rospy.Subscriber("/uav0/ctrl_param", Float32MultiArray, callback=self.ctrl_param_cb)
         
         self.uav_vel_sub = rospy.Subscriber("/uav0/mavros/local_position/odom", Odometry, callback=self.uav_odom_cb)
         self.uav_battery_sub = rospy.Subscriber("uav0/mavros/battery", BatteryState, callback=self.uav_battery_cb)
         '''topic subscribe'''
         
         self.local_pos_pub = rospy.Publisher("/uav0/mavros/setpoint_position/local", PoseStamped, queue_size=10)
+        self.nn_input_state_pub = rospy.Publisher("/uav0/nn_input_rl", Float32MultiArray, queue_size=10)
         self.uav_att_throttle_pub = rospy.Publisher("/uav0/mavros/setpoint_raw/attitude", AttitudeTarget, queue_size=10)
         '''Publish 位置指令给 UAV'''
         
@@ -76,7 +75,7 @@ class UAV_ROS:
         self.rate = rospy.Rate(1 / self.dt)
         self.offb_set_mode = SetModeRequest()  # 先设置工作模式为 offboard
         self.arm_cmd = CommandBoolRequest()
-        
+    
     def rk44(self, action: list, uav_state: np.ndarray):
         self.phi_d = action[0]
         self.theta_d = action[1]
@@ -124,6 +123,9 @@ class UAV_ROS:
                                                   C(self.att[0]) * S(self.att[2]) * S(self.att[1]) - S(self.att[0]) * C(self.att[2]),
                                                   C(self.att[0]) * C(self.att[1])]) - np.array([0., 0., self.g])
     
+    def ctrl_param_cb(self, msg):
+        self.ctrl_param = msg
+    
     def state_cb(self, msg):
         self.current_state = msg
     
@@ -159,9 +161,9 @@ class UAV_ROS:
         
         self.set_state(uav_odom_2_uav_state(self.uav_odom))
         self.local_pos_pub.publish(self.pose)
-        if ((np.linalg.norm(self.pos0 - self.pos) < 0.2) and    # 位置误差
-            (np.linalg.norm(self.vel) < 0.1) and                # 速度
-            (np.linalg.norm(self.att[2]) < deg2rad(5))):        # 偏航角
+        if ((np.linalg.norm(self.pos0 - self.pos) < 0.2) and  # 位置误差
+                (np.linalg.norm(self.vel) < 0.1) and  # 速度
+                (np.linalg.norm(self.att[2]) < deg2rad(5))):  # 偏航角
             self.global_flag = 2
         else:
             self.global_flag = 1

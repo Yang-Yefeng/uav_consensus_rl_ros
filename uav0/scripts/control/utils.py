@@ -61,6 +61,45 @@ def uo_2_ref_angle_throttle(control: np.ndarray,
     return phi_d, theta_d, uf
 
 
+def uo_2_ref_angle_throttle2(control: np.ndarray,
+                             attitude: np.ndarray,
+                             psi_d: float,
+                             m: float,
+                             g: float,
+                             phi_d_old: float,
+                             theta_d_old: float,
+                             dt: float,
+                             att_limit: list,
+                             dot_att_limit: list):
+    # [phi, theta, psi] = attitude
+    ux = control[0]
+    uy = control[1]
+    uz = control[2]
+    
+    uf = m * np.sqrt(ux ** 2 + uy ** 2 + (uz + g) ** 2)
+    # phi_d = np.arcsin(m * (ux * np.sin(psi_d) - uy * np.cos(psi_d)) / uf)
+    # theta_d = np.arctan((ux * np.cos(psi_d) + uy * np.sin(psi_d)) / (uz + g))
+    phi_d = np.arcsin(m * (ux * np.sin(attitude[2]) - uy * np.cos(attitude[2])) / uf)
+    if att_limit is not None:
+        phi_d = np.clip(phi_d, -att_limit[0], att_limit[0])
+    
+    dot_phi_d = (phi_d - phi_d_old) / dt
+    if dot_att_limit is not None:
+        dot_phi_d = np.clip(dot_phi_d, -dot_att_limit[0], dot_att_limit[0])
+        
+    # theta_d = np.arctan((ux * np.cos(attitude[2]) + uy * np.sin(attitude[2])) / (uz + g))
+    
+    theta_d = np.arcsin(np.clip((ux * np.cos(att[2]) + uy * np.sin(att[2])) * m / (uf * np.cos(phi_d)), -1, 1))
+    if att_limit is not None:
+        theta_d = np.clip(theta_d, -att_limit[1], att_limit[1])
+    
+    dot_theta_d = (theta_d - theta_d_old) / dt
+    if dot_att_limit is not None:
+        dot_theta_d = np.clip(dot_theta_d, -dot_att_limit[1], dot_att_limit[1])
+    
+    return phi_d, theta_d, dot_phi_d, dot_theta_d, uf
+
+
 def ref_uav(time: float, amplitude: np.ndarray, period: np.ndarray, bias_a: np.ndarray, bias_phase: np.ndarray):
     w = 2 * np.pi / period
     _r = amplitude * np.sin(w * time + bias_phase) + bias_a
@@ -125,6 +164,25 @@ def offset_uav_sequence(dt: float, tm: float, A: np.ndarray, T: np.ndarray, ba: 
         _ddoff[i, :] = -A * w ** 2 * np.sin(w * i * dt + bp)
     return _off, _doff, _ddoff
 
+
+def offset_uav_sequence_with_dead(dt: float, tm: float, t_miemie: float, A: np.ndarray, T: np.ndarray, ba: np.ndarray, bp: np.ndarray):
+    N = int(np.round(tm / dt))
+    _off = np.zeros((N, 3))
+    _doff = np.zeros((N, 3))
+    _ddoff = np.zeros((N, 3))
+    w = 2 * np.pi / T
+    _off0 = A * np.sin(ba) + bp
+    for i in range(N):
+        _off[i, :] = A * np.sin(w * i * dt + bp) + ba
+        _doff[i, :] = A * w * np.cos(w * i * dt + bp)
+        _ddoff[i, :] = -A * w ** 2 * np.sin(w * i * dt + bp)
+    
+    N1 = int(np.round(t_miemie / dt))
+    _off_miemie = np.tile(_off0, (N1, 1))
+    _doff_miemie = np.zeros((N1, 4))
+    _ddoff_miemie = np.zeros((N1, 4))
+    
+    return np.concatenate((_off_miemie, _off)), np.concatenate((_doff_miemie, _doff)), np.concatenate((_ddoff_miemie, _ddoff))
 
 def euler_2_quaternion(phi, theta, psi):
     w = C(phi / 2) * C(theta / 2) * C(psi / 2) + S(phi / 2) * S(theta / 2) * S(psi / 2)

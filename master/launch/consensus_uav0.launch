@@ -1,0 +1,4 @@
+<launch>
+    <node pkg="uav0" type="rl_param_opt.py" name="uav0_rl_param_opt" output="screen" />
+    <node pkg="uav0" type="control_consensus.py" name="uav0_control_consensus" output="screen"/>
+</launch>

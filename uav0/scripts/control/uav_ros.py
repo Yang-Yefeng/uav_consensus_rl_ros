@@ -34,11 +34,6 @@ class UAV_ROS:
         self.theta_d = 0.
         '''control'''
         
-        # self.opt_pos = PPOActor_Gaussian(state_dim=6, action_dim=9)
-        # optPathPos = os.getcwd() + '/src/uav_consensus_rl_ros/uav0/nets/pos_maybe_good_1/'  # 最好的
-        # self.opt_pos.load_state_dict(torch.load(optPathPos + 'actor'))
-        # self.pos_norm = get_normalizer_from_file(6, optPathPos, 'state_norm.csv')
-        
         self.current_state = State()  # monitor uav status
         self.ctrl_param = Float32MultiArray(data=[0., 0., 0., 0., 0., 0., 0., 0., 0.])  # 9 维
         self.nn_input = Float32MultiArray(data=[0., 0., 0., 0., 0., 0.]) # 6 维

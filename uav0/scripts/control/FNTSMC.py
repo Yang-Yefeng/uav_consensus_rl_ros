@@ -128,22 +128,12 @@ class fntsmc_consensus(fntsmc):
         self.control_out_consensus = np.zeros(self.dim)
     
     def control_update_outer_consensus(self,
-                                       d: float,
-                                       b: float,
-                                       a: np.ndarray,
-                                       kt: float,
-                                       m: float,
                                        consensus_e: np.ndarray,
                                        consensus_de: np.ndarray,
                                        Lambda_eta: np.ndarray,
-                                       dot_eta: np.ndarray,
-                                       obs: np.ndarray,
-                                       g_obs: np.ndarray
                                        ):
         s = consensus_de + self.k1 * consensus_e + self.k2 * self.sig(consensus_e, self.alpha1)
         sigma = (self.k1 + self.k2 * self.alpha1 * self.sig(consensus_e, self.alpha1 - 1)) * consensus_de
-        u1 = -(d + b) * kt / m * dot_eta + sigma - Lambda_eta
-        u2 = (d + b) * obs + self.k3 * np.tanh(5 * s) + self.k4 * self.sig(s, self.alpha2)
-        for _a_ij, _obs in zip(a, g_obs):
-            u2 -= _a_ij * _obs
+        u1 = Lambda_eta + sigma
+        u2 = self.k3 * np.tanh(5 * s) + self.k4 * self.sig(s, self.alpha2)
         self.control_out_consensus = -(u1 + u2) / (d + b)

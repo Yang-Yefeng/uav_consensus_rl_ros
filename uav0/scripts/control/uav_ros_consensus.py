@@ -8,6 +8,7 @@ from mavros_msgs.srv import CommandBool, CommandBoolRequest, SetMode, SetModeReq
 from geometry_msgs.msg import PoseStamped
 from sensor_msgs.msg import BatteryState
 from tf.transformations import quaternion_matrix
+from std_msgs.msg import Float32MultiArray
 from uav0.msg import uav_msg
 
 sys.path.append(os.getcwd() + '/src/uav0/scripts/')
@@ -23,9 +24,17 @@ class UAV_ROS_Consensus:
                  time_max: float = 30.,
                  pos0: np.ndarray = np.zeros(3),
                  offset: np.ndarray = np.zeros(3),
-                 uav_existance: list = None):
+                 uav_existance: list = None,
+                 adj:list = None,
+                 d:float=0.,
+                 b:float=0.):
         if uav_existance is None:
             uav_existance = [1, 0, 0, 0]
+        if adj is None:
+            adj = [0, 0, 0, 0]
+        self.adj = adj
+        self.d = d
+        self.b = b
         self.m = m  # 无人机质量
         self.g = 9.8
         self.kt = 1e-3
@@ -47,23 +56,21 @@ class UAV_ROS_Consensus:
         self.throttle = self.m * self.g  # 油门
         self.phi_d = 0.
         self.theta_d = 0.
+        self.dot_phi_d = 0.
+        self.dot_theta_d = 0.
+        self.consensus_e = np.zeros(3)
+        self.consensus_de = np.zeros(3)
+        self.lambda_eta = np.zeros(3)
         '''control'''
         
-        self.opt_pos = PPOActor_Gaussian(state_dim=6, action_dim=9)
-        optPathPos = os.getcwd() + '/src/uav_consensus_rl_ros/uav0/nets/pos_maybe_good_1/'  # 最好的
-        self.opt_pos.load_state_dict(torch.load(optPathPos + 'actor'))
-        self.pos_norm = get_normalizer_from_file(6, optPathPos, 'state_norm.csv')
-        
         self.current_state = State()  # monitor uav status
-        self.pose = PoseStamped()  # publish offboard [x_d y_d z_d] cmd
-        self.uav_odom = Odometry()  # subscribe uav state x y z vx vy vz phi theta psi p q r
-        self.ctrl_cmd = AttitudeTarget()  # publish offboard expected [phi_d theta_d psi_d throttle] cmd
-        self.voltage = 11.4  # subscribe voltage from the battery
-        self.global_flag = 0  # UAV working mode monitoring
-        # 0: connect to onboard computer, arm, load parameters, prepare
-        # 1: approaching and initialization
-        # 2: control by FNTSMC ([phi_d theta_d psi_d throttle])
-        # 3: finish and switch OFFBOARD to position
+        self.ctrl_param = Float32MultiArray(data=[0., 0., 0., 0., 0., 0., 0., 0., 0.])  # 9 维
+        self.nn_input = Float32MultiArray(data=[0., 0., 0., 0., 0., 0.])  # 6 维
+        self.pose = PoseStamped()
+        self.uav_odom = Odometry()
+        self.ctrl_cmd = AttitudeTarget()
+        self.voltage = 11.4
+        self.global_flag = 0
         
         '''OK 标志位'''
         self.uav_msg_0 = uav_msg()
@@ -72,24 +79,30 @@ class UAV_ROS_Consensus:
         self.uav_msg_3 = uav_msg()
         if uav_existance[1] == 0:  # 如果 1 号无人机本身不存在，就默认它准备好了
             self.uav_msg_1.are_you_ok.data = True
+            self.uav_msg_1.finish.data = True
         if uav_existance[2] == 0:  # 如果 2 号无人机本身不存在，就默认它准备好了
             self.uav_msg_2.are_you_ok.data = True
+            self.uav_msg_2.finish.data = True
         if uav_existance[3] == 0:  # 如果 3 号无人机本身不存在，就默认它准备好了
             self.uav_msg_3.are_you_ok.data = True
+            self.uav_msg_3.finish.data = True
         
+        '''OK 标志位 pub 或者 sub'''
         self.uav_msg_0_pub = rospy.Publisher("/uav0/uav_msg", uav_msg, queue_size=10)
         self.uav_msg_1_sub = rospy.Subscriber("/uav1/uav_msg", uav_msg, callback=self.uav_msg_1_cb)
         self.uav_msg_2_sub = rospy.Subscriber("/uav2/uav_msg", uav_msg, callback=self.uav_msg_2_cb)
         self.uav_msg_3_sub = rospy.Subscriber("/uav3/uav_msg", uav_msg, callback=self.uav_msg_3_cb)
-        '''OK 标志位'''
+        '''OK 标志位 pub 或者 sub'''
         
         self.state_sub = rospy.Subscriber("uav0/mavros/state", State, callback=self.state_cb)
+        self.ctrl_param_sub = rospy.Subscriber("/uav0/ctrl_param", Float32MultiArray, callback=self.ctrl_param_cb)
         
         self.uav_vel_sub = rospy.Subscriber("uav0/mavros/local_position/odom", Odometry, callback=self.uav_odom_cb)
         self.uav_battery_sub = rospy.Subscriber("uav0/mavros/battery", BatteryState, callback=self.uav_battery_cb)
         '''topic subscribe'''
         
         self.local_pos_pub = rospy.Publisher("/uav0/mavros/setpoint_position/local", PoseStamped, queue_size=10)
+        self.nn_input_state_pub = rospy.Publisher("/uav0/nn_input_rl", Float32MultiArray, queue_size=10)
         self.uav_att_throttle_pub = rospy.Publisher("/uav0/mavros/setpoint_raw/attitude", AttitudeTarget, queue_size=10)
         '''Publish 位置指令给 UAV'''
         
@@ -152,6 +165,9 @@ class UAV_ROS_Consensus:
                                                   C(self.att[0]) * S(self.att[2]) * S(self.att[1]) - S(self.att[0]) * C(self.att[2]),
                                                   C(self.att[0]) * C(self.att[1])]) - np.array([0., 0., self.g])
     
+    def ctrl_param_cb(self, msg):
+        self.ctrl_param = msg
+    
     def uav_msg_1_cb(self, msg: Bool):
         self.uav_msg_1 = msg
     
@@ -161,17 +177,54 @@ class UAV_ROS_Consensus:
     def uav_msg_3_cb(self, msg: Bool):
         self.uav_msg_3 = msg
     
-    def uav_msg_publish(self, ref:np.ndarray, dot_ref:np.ndarray, nu:np.ndarray, dot_nu:np.ndarray, obs:np.ndarray):
-        self.uav_msg_0.position = self.eta().tolist()
-        self.uav_msg_0.velocity = self.dot_eta().tolist()
+    def cal_consensus_e(self, nu: np.ndarray, eta_d: np.ndarray):
+        e1 = (self.d + self.b) * (self.eta() - nu) - self.b * eta_d
+        Lambda = (self.adj[0] * (self.eta() - nu) +
+                  self.adj[1]*(self.uav_msg_1.eta - self.uav_msg_1.nu) +
+                  self.adj[2]*(self.uav_msg_2.eta - self.uav_msg_2.nu) +
+                  self.adj[3]*(self.uav_msg_3.eta - self.uav_msg_3.nu))
+        self.consensus_e = e1 - Lambda
+        
+    def cal_consensus_de(self, dot_nu: np.ndarray, dot_eta_d: np.ndarray):
+        dot_e1 = (self.d + self.b) * (self.dot_eta() - dot_nu) - self.b * dot_eta_d
+        dot_Lambda = (self.adj[0] * (self.dot_eta() - dot_nu) +
+                      self.adj[1] * (self.uav_msg_1.dot_eta - self.uav_msg_1.dot_nu) +
+                      self.adj[2] * (self.uav_msg_2.dot_eta - self.uav_msg_2.dot_nu) +
+                      self.adj[3] * (self.uav_msg_3.dot_eta - self.uav_msg_3.dot_nu))
+        self.consensus_e = dot_e1 - dot_Lambda
+    
+    def cal_Lambda_eta(self, dot2_eat_d:np.ndarray, dot2_nu:np.ndarray, obs:np.ndarray):
+        lambda_eta = -self.b * dot2_eat_d + (self.d + self.b)(-self.kt / self.m * self.dot_eta() + obs - dot2_nu)
+        lambda_eta -= (self.adj[0] * (self.uav_msg_0.second_order_dynamic - self.uav_msg_0.dot2_nu)+\
+                       self.adj[1] * (self.uav_msg_1.second_order_dynamic - self.uav_msg_1.dot2_nu) + \
+                       self.adj[2] * (self.uav_msg_2.second_order_dynamic - self.uav_msg_2.dot2_nu) + \
+                       self.adj[3] * (self.uav_msg_3.second_order_dynamic - self.uav_msg_3.dot2_nu))
+        self.lambda_eta = lambda_eta.copy()
+    
+    def uav_msg_publish(self,
+                        ref:np.ndarray,
+                        dot_ref:np.ndarray,
+                        nu:np.ndarray,
+                        dot_nu:np.ndarray,
+                        dot2_nu:np.ndarray,
+                        ctrl:np.ndarray,
+                        obs:np.ndarray):
+        self.uav_msg_0.are_you_ok.data = True if (self.global_flag == 2 or self.global_flag == 3) else False
+        self.uav_msg_0.finish.data = True if self.global_flag == 3 else False
+        self.uav_msg_0.eta = self.eta().tolist()
+        self.uav_msg_0.dot_eta = self.dot_eta().tolist()
         self.uav_msg_0.ref = ref.tolist()
         self.uav_msg_0.dot_ref = dot_ref.tolist()
         self.uav_msg_0.nu = nu.tolist()
         self.uav_msg_0.dot_nu = dot_nu.tolist()
-        self.uav_msg_0.obs = obs.tolist()
+        self.uav_msg_0.dot2_nu = dot2_nu.tolist()
+        self.uav_msg_0.second_order_dynamic = (-self.kt / self.m * self.dot_eta() + ctrl + obs).tolist()
         self.uav_msg_0.name = 'uav0'
-        self.uav_msg_0.are_you_ok.data = True if self.global_flag == 2 else False
         self.uav_msg_0_pub.publish(self.uav_msg_0)
+    
+    def nn_input_publish(self):
+        self.nn_input.data = np.concatenate((self.consensus_e, self.consensus_de)).tolist()
+        self.nn_input_state_pub.publish(self.nn_input)
     
     def state_cb(self, msg: State):
         self.current_state = msg
@@ -249,14 +302,24 @@ class UAV_ROS_Consensus:
             self.local_pos_pub.publish(self.pose)
             self.rate.sleep()
     
-    def publish_ctrl_cmd(self, ctrl, psi_d, use_gazebo):
-        phi_d, theta_d, uf = uo_2_ref_angle_throttle(ctrl,
-                                                     self.att,
-                                                     psi_d,
-                                                     self.m,
-                                                     self.g,
-                                                     limit=[np.pi / 4, np.pi / 4],
-                                                     att_limitation=True)
+    def publish_ctrl_cmd(self, ctrl, psi_d, phi_d_old, theta_d_old, dt, att_limit, dot_att_limit, use_gazebo):
+        # phi_d, theta_d, uf = uo_2_ref_angle_throttle(ctrl,
+        #                                              self.att,
+        #                                              psi_d,
+        #                                              self.m,
+        #                                              self.g,
+        #                                              limit=[np.pi / 4, np.pi / 4],
+        #                                              att_limitation=True)
+        phi_d, theta_d, dot_phi_d, dot_theta_d, uf = uo_2_ref_angle_throttle2(control=ctrl,
+                                                                              attitude=self.att,
+                                                                              psi_d=psi_d,
+                                                                              m=self.m,
+                                                                              g=self.g,
+                                                                              phi_d_old=phi_d_old,
+                                                                              theta_d_old=theta_d_old,
+                                                                              dt=dt,
+                                                                              att_limit=att_limit,
+                                                                              dot_att_limit=dot_att_limit)
         self.ctrl_cmd.header.stamp = rospy.Time.now()
         self.ctrl_cmd.type_mask = AttitudeTarget.IGNORE_ROLL_RATE + AttitudeTarget.IGNORE_PITCH_RATE + AttitudeTarget.IGNORE_YAW_RATE
         cmd_q = tf.transformations.quaternion_from_euler(phi_d, theta_d, psi_d, axes='sxyz')
@@ -267,4 +330,8 @@ class UAV_ROS_Consensus:
         self.ctrl_cmd.orientation.w = cmd_q[3]
         self.ctrl_cmd.thrust = thrust_2_throttle(uf, use_gazebo)
         self.uav_att_throttle_pub.publish(self.ctrl_cmd)
+        self.phi_d = phi_d
+        self.theta_d = theta_d
+        self.dot_phi_d = dot_phi_d
+        self.dot_theta_d = dot_theta_d
         return phi_d, theta_d, uf

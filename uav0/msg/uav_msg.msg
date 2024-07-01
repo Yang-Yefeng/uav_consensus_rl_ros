@@ -1,9 +1,11 @@
 std_msgs/Bool are_you_ok
-float32[] position
-float32[] velocity
-float32[] obs
+std_msgs/Bool finish
+float32[] eta
+float32[] dot_eta
 float32[] ref
 float32[] dot_ref
 float32[] nu
 float32[] dot_nu
+float32[] dot2_nu
+float32[] second_order_dynamic
 string name

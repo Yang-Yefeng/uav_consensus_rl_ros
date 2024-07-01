@@ -2,7 +2,7 @@
 import os, rospy
 
 from control.uav_ros_consensus import UAV_ROS_Consensus
-from control.FNTSMC import fntsmc_param, fntsmc
+from control.FNTSMC import fntsmc_param, fntsmc_consensus
 from control.observer import robust_differentiator_3rd as rd3
 from control.collector import data_collector
 from control.utils import *
@@ -20,7 +20,7 @@ pos_ctrl_param = fntsmc_param(
 )
 
 if __name__ == "__main__":
-    rospy.init_node("uav0")
+    rospy.init_node("uav0_control_consensus")
     
     uav_ros = UAV_ROS_Consensus(m=0.722,
                                 dt=DT,
@@ -41,8 +41,10 @@ if __name__ == "__main__":
     obs_z = rd3(use_freq=True,
                 omega=[[1.2, 1.2, 1.2]],
                 dim=1, dt=DT)
-    controller = fntsmc(pos_ctrl_param)
+    controller = fntsmc_consensus(pos_ctrl_param)
+    t_MIEMIE = 5
     data_record = data_collector(N=round(uav_ros.time_max / DT))
+    ctrl_param_record = None
     '''define controllers and observers'''
     
     ra = np.array([1.0, 1.0, 0.3, deg2rad(0)])
@@ -63,8 +65,8 @@ if __name__ == "__main__":
     # CONTROLLER = 'PX4-PID'
     # CONTROLLER = 'MPC'
     
-    REF, DOT_REF, DOT2_REF = ref_uav_sequence(DT, uav_ros.time_max, ra, rp, rba, rbp)
-    NU, DOT_NU, DOT2_NU = offset_uav_sequence(DT, uav_ros.time_max, oa, op, oba, obp)
+    REF, DOT_REF, DOT2_REF = ref_uav_sequence_with_dead(DT, uav_ros.time_max, t_MIEMIE, ra, rp, rba, rbp)
+    NU, DOT_NU, DOT2_NU = offset_uav_sequence_with_dead(DT, uav_ros.time_max, t_MIEMIE, oa, op, oba, obp)
     
     t0 = rospy.Time.now().to_sec()
     while not rospy.is_shutdown():
@@ -90,17 +92,21 @@ if __name__ == "__main__":
             
             '''2. generate outer-loop reference signal 'eta_d' and its 1st, 2nd derivatives'''
             eta_d, dot_eta_d, dot2_eta_d = ref[0: 3], dot_ref[0: 3], dot2_ref[0: 3]
-            e = uav_ros.eta() - eta_d
-            de = uav_ros.dot_eta() - dot_eta_d
+            # e = uav_ros.eta() - eta_d
+            # de = uav_ros.dot_eta() - dot_eta_d
             psi_d = ref[3]
             
             syst_dynamic = -uav_ros.kt / uav_ros.m * uav_ros.dot_eta() + uav_ros.A()
             observe_xy = obs_xy.observe(e=uav_ros.eta()[0:2], syst_dynamic=syst_dynamic[0:2])
             observe_z = obs_z.observe(e=uav_ros.eta()[2], syst_dynamic=syst_dynamic[2])
-            if USE_OBS and t_now > 2:
+            if USE_OBS and t_now > 0.:
                 observe = np.concatenate((observe_xy, observe_z))
             else:
                 observe = np.zeros(3)
+            
+            uav_ros.cal_consensus_e(nu=nu, eta_d=eta_d)
+            uav_ros.cal_consensus_de(dot_nu=dot_nu, dot_eta_d=dot_eta_d)
+            uav_ros.cal_Lambda_eta(dot2_eat_d=dot2_eta_d, dot2_nu=dot2_nu, obs=observe)
             
             '''3. Update the parameters of FNTSMC if RL is used'''
             if CONTROLLER == 'PX4-PID':
@@ -111,20 +117,25 @@ if __name__ == "__main__":
                 phi_d, theta_d, uf = 0., 0., 0.
             else:
                 if CONTROLLER == 'RL':
-                    pos_s = np.concatenate((e, de))
-                    param_pos = uav_ros.opt_pos.evaluate(uav_ros.pos_norm(pos_s))
-                    hehe = np.array([1, 1, 1, 1, 1, 1, 5, 5, 5]).astype(float)
-                    controller.get_param_from_actor(param_pos * hehe, update_z=False)
+                    ctrl_param_np = np.array(uav_ros.ctrl_param.data).astype(float)
+                    if t_now > t_MIEMIE:  # 前几秒过渡一下
+                        controller.get_param_from_actor(ctrl_param_np, update_z=True)
+                    # controller.print_param()
+                    ctrl_param_record = np.atleast_2d(ctrl_param_np) if ctrl_param_record is None else np.vstack((ctrl_param_record, ctrl_param_np))
                 
                 '''3. generate phi_d, theta_d, throttle'''
-                controller.control_update_outer(e_eta=e,
-                                                dot_e_eta=de,
-                                                dot_eta=uav_ros.vel,
-                                                kt=uav_ros.kt,
-                                                m=uav_ros.m,
-                                                dd_ref=dot2_eta_d,
-                                                obs=observe)
-                phi_d, theta_d, uf = uav_ros.publish_ctrl_cmd(controller.control_out, psi_d, USE_GAZEBO)
+                controller.control_update_outer_consensus(consensus_e=uav_ros.consensus_e,
+                                                          consensus_de=uav_ros.consensus_de,
+                                                          Lambda_eta=uav_ros.lambda_eta)
+                
+                phi_d, theta_d, dot_phi_d, dot_theta_d, uf = uav_ros.publish_ctrl_cmd(ctrl=controller.control_out_consensus,
+                                                                                      psi_d=psi_d,
+                                                                                      phi_d_old=uav_ros.phi_d,
+                                                                                      theta_d_old=uav_ros.theta_d,
+                                                                                      dt=uav_ros.dt,
+                                                                                      att_limit=[np.pi / 3, np.pi / 3],
+                                                                                      dot_att_limit=[np.pi / 2, np.pi / 2],
+                                                                                      use_gazebo=USE_GAZEBO)
             
             '''5. get new uav states from Gazebo'''
             uav_ros.rk44(action=[phi_d, theta_d, uf], uav_state=uav_odom_2_uav_state(uav_ros.uav_odom))
@@ -159,5 +170,6 @@ if __name__ == "__main__":
             uav_ros.pose.pose.position.z = 0.5
             uav_ros.local_pos_pub.publish(uav_ros.pose)
             print('working mode error...')
-        uav_ros.uav_msg_publish(ref, dot_ref, nu, dot_nu, observe)
+        uav_ros.uav_msg_publish(ref, dot_ref, nu, dot_nu, dot2_nu, controller.control_out_consensus, observe)
+        uav_ros.nn_input_publish()
         uav_ros.rate.sleep()

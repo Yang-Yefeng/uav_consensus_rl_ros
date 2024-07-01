@@ -85,7 +85,7 @@ if __name__ == "__main__":
             de = uav_ros.dot_eta() - dot_eta_d
             psi_d = ref[3]
             
-            if USE_OBS and t_now > 2:
+            if USE_OBS and t_now > 0.:
                 syst_dynamic = -uav_ros.kt / uav_ros.m * uav_ros.dot_eta() + uav_ros.A()
                 observe_xy = obs_xy.observe(e=uav_ros.eta()[0:2], syst_dynamic=syst_dynamic[0:2])
                 observe_z = obs_z.observe(e=uav_ros.eta()[2], syst_dynamic=syst_dynamic[2])

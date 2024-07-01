@@ -10,9 +10,9 @@ cur_path = os.path.dirname(os.path.abspath(__file__))
 
 DT = 0.01
 pos_ctrl_param = fntsmc_param(
-    k1=np.array([0.3, 0.3, 1.0]).astype(float),
-    k2=np.array([0.5, 0.5, 1]).astype(float),
-    k3=np.array([1.5, 1.5, 1.5]).astype(float),        # 补偿观测器的，小点就行
+    k1=np.array([0.3, 0.3, 0.6]).astype(float),
+    k2=np.array([0.5, 0.5, 0.6]).astype(float),
+    k3=np.array([0.5, 0.5, 0.5]).astype(float),        # 补偿观测器的，小点就行
     k4=np.array([6, 6, 6]).astype(float),
     alpha1=np.array([1.01, 1.01, 1.01]).astype(float),
     alpha2=np.array([1.01, 1.01, 1.01]).astype(float),
@@ -33,10 +33,10 @@ if __name__ == "__main__":
     
     '''define controllers and observers'''
     obs_xy = rd3(use_freq=True,
-                 omega=[[1.0, 1.1, 1.2], [1.0, 1.1, 1.2]],  # [0.8, 0.78, 0.75]
+                 omega=[[0.9, 0.9, 0.9], [0.9, 0.9, 0.9]],  # [0.8, 0.78, 0.75]
                  dim=2, dt=DT)
     obs_z = rd3(use_freq=True,
-                omega=[[1.2, 1.2, 1.2]],
+                omega=[[1.0, 1.0, 1.0]],
                 dim=1, dt=DT)
     controller = fntsmc(pos_ctrl_param)
     t_MIEMIE = 5
@@ -44,9 +44,14 @@ if __name__ == "__main__":
     ctrl_param_record = None
     '''define controllers and observers'''
     
-    ra = np.array([1.0, 1.0, 0.3, deg2rad(0)])
-    rp = np.array([10, 10, 10, 10])  # xd yd zd psid 周期
-    rba = np.array([0, 0, 1, deg2rad(0)])  # xd yd zd psid 幅值偏移
+    # ra = np.array([1.0, 1.0, 0.3, deg2rad(0)])
+    # rp = np.array([10, 10, 10, 10])  # xd yd zd psid 周期
+    # rba = np.array([0, 0, 1, deg2rad(0)])  # xd yd zd psid 幅值偏移
+    # rbp = np.array([np.pi / 2, 0, 0, 0])  # xd yd zd psid 相位偏移
+
+    ra = np.array([1.3, 1.3, 0.4, deg2rad(0)])
+    rp = np.array([6, 6, 10, 10])  # xd yd zd psid 周期
+    rba = np.array([0.0, 0.0, 1.0, deg2rad(0)])  # xd yd zd psid 幅值偏移
     rbp = np.array([np.pi / 2, 0, 0, 0])  # xd yd zd psid 相位偏移
     
     USE_GAZEBO = False  # 使用gazebo时，无人机质量和悬停油门可能会不同
@@ -85,7 +90,7 @@ if __name__ == "__main__":
             de = uav_ros.dot_eta() - dot_eta_d
             psi_d = ref[3]
             
-            if USE_OBS and t_now > 0.:
+            if USE_OBS and t_now > 1.0:
                 syst_dynamic = -uav_ros.kt / uav_ros.m * uav_ros.dot_eta() + uav_ros.A()
                 observe_xy = obs_xy.observe(e=uav_ros.eta()[0:2], syst_dynamic=syst_dynamic[0:2])
                 observe_z = obs_z.observe(e=uav_ros.eta()[2], syst_dynamic=syst_dynamic[2])
@@ -104,7 +109,7 @@ if __name__ == "__main__":
                 if CONTROLLER == 'RL':
                     ctrl_param_np = np.array(uav_ros.ctrl_param.data).astype(float)
                     if t_now > t_MIEMIE:        # 前几秒过渡一下
-                        controller.get_param_from_actor(ctrl_param_np, update_z=True)
+                        controller.get_param_from_actor(ctrl_param_np, update_z=False)
                     # controller.print_param()
                     ctrl_param_record = np.atleast_2d(ctrl_param_np) if ctrl_param_record is None else np.vstack((ctrl_param_record, ctrl_param_np))
                 

@@ -58,6 +58,7 @@ class fntsmc:
     @staticmethod
     def sig(x, a, kt=5):
         return np.fabs(x) ** a * np.tanh(kt * x)
+
     
     def control_update_outer(self,
                              e_eta: np.ndarray,
@@ -67,7 +68,7 @@ class fntsmc:
                              m: float,
                              dd_ref: np.ndarray,
                              obs: np.ndarray):
-        self.s = dot_e_eta + self.k1 * e_eta + self.k2 * self.sig(e_eta, self.alpha1)
+        self.s = dot_e_eta + self.k1 * e_eta + self.k2 * self.sig(e_eta, self.alpha1, kt=5)
         u1 = -kt / m * dot_eta - dd_ref
         u2 = (self.k1 + self.k2 * self.alpha1 * self.sig(e_eta, self.alpha1 - 1)) * dot_e_eta
         u3 = obs + self.k3 * np.tanh(5 * self.s) + self.k4 * self.sig(self.s, self.alpha2)

@@ -66,7 +66,6 @@ class fntsmc:
     @staticmethod
     def sig(x, a, kt=5):
         return np.fabs(x) ** a * np.tanh(kt * x)
-
     
     def control_update_outer(self,
                              e: np.ndarray,
@@ -74,18 +73,18 @@ class fntsmc:
                              dot_eta: np.ndarray,
                              kt: float,
                              m: float,
-                             ref:np.ndarray,
-                             d_ref:np.ndarray,
+                             ref: np.ndarray,
+                             d_ref: np.ndarray,
                              dd_ref: np.ndarray,
                              obs: np.ndarray,
-                             e_max: float= 0.2,
-                             dot_e_max: float= 0.5,
-                             k_com_pos:np.ndarray = np.array([0.0, 0.0, 0.05]),
-                             k_com_vel:np.ndarray = np.array([0.0, 0.0, 0.05])):
+                             e_max: float = 0.2,
+                             dot_e_max: float = 0.5,
+                             k_com_pos: np.ndarray = np.array([0.0, 0.0, 0.05]),
+                             k_com_vel: np.ndarray = np.array([0.0, 0.0, 0.05])):
         
-        if e_max is not None:     # 增加对位置误差的输入饱和
+        if e_max is not None:  # 增加对位置误差的输入饱和
             e = np.clip(e, -e_max, e_max)
-        if dot_e_max is not None:     # 增加对速度误差的输入饱和
+        if dot_e_max is not None:  # 增加对速度误差的输入饱和
             de = np.clip(de, -dot_e_max, dot_e_max)
         
         self.s = (de + k_com_vel * d_ref) + self.k1 * (e + k_com_pos * ref) + self.k2 * self.sig(e + k_com_pos * ref, self.alpha1, kt=5)
@@ -97,7 +96,7 @@ class fntsmc:
         self.yyf_d = self.k_yyf_d * de
         self.control_out = -(u1 + u2 + u3 + self.yyf_i + self.yyf_p + self.yyf_d)
     
-    def get_param_from_actor(self, action_from_actor: np.ndarray, update_z:bool = False):
+    def get_param_from_actor(self, action_from_actor: np.ndarray, update_z: bool = False):
         if np.min(action_from_actor) < 0:
             print('ERROR!!!!')
         if update_z:
@@ -152,20 +151,22 @@ class fntsmc_consensus(fntsmc):
         self.control_out_consensus = np.zeros(self.dim)
     
     def control_update_outer_consensus(self,
+                                       b: float,
+                                       d: float,
                                        consensus_e: np.ndarray,
                                        consensus_de: np.ndarray,
                                        Lambda_eta: np.ndarray,
-                                       ref:np.ndarray,
-                                       d_ref:np.ndarray,
+                                       ref: np.ndarray,
+                                       d_ref: np.ndarray,
                                        e_max: float = 0.2,
                                        dot_e_max: float = 0.5,
                                        k_com_pos: np.ndarray = np.array([0.0, 0.0, 0.05]),
                                        k_com_vel: np.ndarray = np.array([0.0, 0.0, 0.05])):
-        if e_max is not None:     # 增加对位置误差的输入饱和
+        if e_max is not None:  # 增加对位置误差的输入饱和
             consensus_e = np.clip(consensus_e, -e_max, e_max)
-        if dot_e_max is not None:     # 增加对速度误差的输入饱和
+        if dot_e_max is not None:  # 增加对速度误差的输入饱和
             consensus_de = np.clip(consensus_de, -dot_e_max, dot_e_max)
-            
+        
         s = (consensus_de + k_com_vel * d_ref) + self.k1 * (consensus_e + k_com_pos * ref) + self.k2 * self.sig(consensus_e + k_com_pos * ref, self.alpha1)
         sigma = (self.k1 + self.k2 * self.alpha1 * self.sig(consensus_e + k_com_pos * ref, self.alpha1 - 1)) * (consensus_de + k_com_vel * d_ref)
         u1 = Lambda_eta + sigma

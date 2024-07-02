@@ -1,5 +1,8 @@
 #! /usr/bin/python3
 import os, rospy
+
+import numpy as np
+
 from control.uav_ros import UAV_ROS
 from control.FNTSMC import fntsmc_param, fntsmc
 from control.observer import robust_differentiator_3rd as rd3
@@ -46,7 +49,7 @@ if __name__ == "__main__":
     
     # ra = np.array([0., 0., 0., deg2rad(0)])
     # rp = np.array([10, 10, 10, 10])  # xd yd zd psid 周期
-    # rba = np.array([0, 0, 2.0, deg2rad(0)])  # xd yd zd psid 幅值偏移
+    # rba = np.array([0, 0, 1.0, deg2rad(0)])  # xd yd zd psid 幅值偏移
     # rbp = np.array([np.pi / 2, 0, 0, 0])  # xd yd zd psid 相位偏移
 
     ra = np.array([1.3, 1.3, 0.4, deg2rad(0)])
@@ -79,10 +82,10 @@ if __name__ == "__main__":
                 print('time: ', t_now)
             
             '''1. generate reference command and uncertainty'''
-            if t_now < t_MIEMIE:
-                ref, dot_ref, dot2_ref = ref_all[0], np.zeros(3), np.zeros(3)
-            else:
-                ref, dot_ref, dot2_ref = ref_all[uav_ros.n], dot_ref_all[uav_ros.n], dot2_ref_all[uav_ros.n]
+            # if t_now < t_MIEMIE:
+            #     ref, dot_ref, dot2_ref = ref_all[0], np.zeros(3), np.zeros(3)
+            # else:
+            ref, dot_ref, dot2_ref = ref_all[uav_ros.n], dot_ref_all[uav_ros.n], dot2_ref_all[uav_ros.n]
             
             '''2. generate outer-loop reference signal 'eta_d' and its 1st, 2nd, and 3rd-order derivatives'''
             eta_d, dot_eta_d, dot2_eta_d = ref[0: 3], dot_ref[0: 3], dot2_ref[0: 3]
@@ -90,7 +93,7 @@ if __name__ == "__main__":
             de = uav_ros.dot_eta() - dot_eta_d
             psi_d = ref[3]
             
-            if USE_OBS and t_now > 1.0:
+            if USE_OBS:
                 syst_dynamic = -uav_ros.kt / uav_ros.m * uav_ros.dot_eta() + uav_ros.A()
                 observe_xy = obs_xy.observe(e=uav_ros.eta()[0:2], syst_dynamic=syst_dynamic[0:2])
                 observe_z = obs_z.observe(e=uav_ros.eta()[2], syst_dynamic=syst_dynamic[2])
@@ -122,11 +125,11 @@ if __name__ == "__main__":
                                                 ref=eta_d,
                                                 d_ref=dot_eta_d,
                                                 dd_ref=dot2_eta_d,
-                                                obs=observe,
+                                                obs=observe if t_now > t_MIEMIE else np.zeros(3),
                                                 e_max=0.5,
                                                 dot_e_max=1.5,
-                                                k_com_pos=np.array([0.0, 0.0, 0.0]),
-                                                k_com_vel=np.array([0.0, 0.0, 0.0]))
+                                                k_com_pos=np.array([0.0, 0.0, 0.05]),
+                                                k_com_vel=np.array([0.0, 0.0, 0.05]))
                 phi_d, theta_d, uf = uav_ros.publish_ctrl_cmd(controller.control_out, psi_d, USE_GAZEBO)
             
             '''5. get new uav states from Gazebo'''

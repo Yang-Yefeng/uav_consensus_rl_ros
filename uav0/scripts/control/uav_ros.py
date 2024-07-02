@@ -10,7 +10,13 @@ from control.utils import *
 
 
 class UAV_ROS:
-    def __init__(self, m: float = 1.5, dt: float = 0.01, time_max: float = 30., pos0: np.ndarray = np.zeros(3), offset: np.ndarray = np.zeros(3)):
+    def __init__(self,
+                 m: float = 1.5,
+                 dt: float = 0.01,
+                 time_max: float = 30.,
+                 pos0: np.ndarray = np.zeros(3),
+                 offset: np.ndarray = np.zeros(3),
+                 group=''):
         self.m = m  # 无人机质量
         self.g = 9.8
         self.kt = 1e-3
@@ -47,25 +53,25 @@ class UAV_ROS:
         # 2: control by FNTSMC ([phi_d theta_d psi_d throttle])
         # 3: finish and switch OFFBOARD to position
         
-        self.state_sub = rospy.Subscriber("/uav0/mavros/state", State, callback=self.state_cb)
-        self.ctrl_param_sub = rospy.Subscriber("/uav0/ctrl_param", Float32MultiArray, callback=self.ctrl_param_cb)
+        self.state_sub = rospy.Subscriber(group + "/mavros/state", State, callback=self.state_cb)
+        self.ctrl_param_sub = rospy.Subscriber(group + "/ctrl_param", Float32MultiArray, callback=self.ctrl_param_cb)
         
-        self.uav_vel_sub = rospy.Subscriber("/uav0/mavros/local_position/odom", Odometry, callback=self.uav_odom_cb)
-        self.uav_battery_sub = rospy.Subscriber("uav0/mavros/battery", BatteryState, callback=self.uav_battery_cb)
+        self.uav_vel_sub = rospy.Subscriber(group + "/mavros/local_position/odom", Odometry, callback=self.uav_odom_cb)
+        self.uav_battery_sub = rospy.Subscriber(group + "/mavros/battery", BatteryState, callback=self.uav_battery_cb)
         '''topic subscribe'''
         
-        self.local_pos_pub = rospy.Publisher("/uav0/mavros/setpoint_position/local", PoseStamped, queue_size=10)
-        self.nn_input_state_pub = rospy.Publisher("/uav0/nn_input_rl", Float32MultiArray, queue_size=10)
-        self.uav_att_throttle_pub = rospy.Publisher("/uav0/mavros/setpoint_raw/attitude", AttitudeTarget, queue_size=10)
+        self.local_pos_pub = rospy.Publisher(group + "/mavros/setpoint_position/local", PoseStamped, queue_size=10)
+        self.nn_input_state_pub = rospy.Publisher(group + "/nn_input_rl", Float32MultiArray, queue_size=10)
+        self.uav_att_throttle_pub = rospy.Publisher(group + "/mavros/setpoint_raw/attitude", AttitudeTarget, queue_size=10)
         '''Publish 位置指令给 UAV'''
         
         '''arming service'''
-        rospy.wait_for_service("/uav0/mavros/cmd/arming")  # 等待解锁电机的 service 建立
-        self.arming_client = rospy.ServiceProxy("/uav0/mavros/cmd/arming", CommandBool)
+        rospy.wait_for_service(group + "/mavros/cmd/arming")  # 等待解锁电机的 service 建立
+        self.arming_client = rospy.ServiceProxy(group + "/mavros/cmd/arming", CommandBool)
         
         '''working mode service'''
-        rospy.wait_for_service("/uav0/mavros/set_mode")  # 等待设置 UAV 工作模式的 service 建立
-        self.set_mode_client = rospy.ServiceProxy("/uav0/mavros/set_mode", SetMode)
+        rospy.wait_for_service(group + "/mavros/set_mode")  # 等待设置 UAV 工作模式的 service 建立
+        self.set_mode_client = rospy.ServiceProxy(group + "/mavros/set_mode", SetMode)
         
         self.rate = rospy.Rate(1 / self.dt)
         self.offb_set_mode = SetModeRequest()  # 先设置工作模式为 offboard

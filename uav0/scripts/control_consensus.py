@@ -126,7 +126,13 @@ if __name__ == "__main__":
                 '''3. generate phi_d, theta_d, throttle'''
                 controller.control_update_outer_consensus(consensus_e=uav_ros.consensus_e,
                                                           consensus_de=uav_ros.consensus_de,
-                                                          Lambda_eta=uav_ros.lambda_eta)
+                                                          Lambda_eta=uav_ros.lambda_eta,
+                                                          ref=eta_d + nu,
+                                                          d_ref=dot_eta_d + dot_nu,
+                                                          e_max=0.5,
+                                                          dot_e_max = 1.0,
+                                                          k_com_pos= np.array([0.0, 0.0, 0.0]),
+                                                          k_com_vel= np.array([0.0, 0.0, 0.0]))
                 
                 phi_d, theta_d, dot_phi_d, dot_theta_d, uf = uav_ros.publish_ctrl_cmd(ctrl=controller.control_out_consensus,
                                                                                       psi_d=psi_d,

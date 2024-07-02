@@ -44,6 +44,14 @@ class fntsmc:
         self.s = np.zeros(self.dim)
         self.control_in = np.zeros(self.dim)
         self.control_out = np.zeros(self.dim)
+        
+        self.yyf_i = np.zeros(3)
+        self.yyf_d = np.zeros(3)
+        self.yyf_p = np.zeros(3)
+        
+        self.k_yyf_i = np.array([0., 0., 0.005])
+        self.k_yyf_d = np.array([0., 0., 0.15])
+        self.k_yyf_p = np.array([0., 0., 0.1])
     
     def print_param(self):
         print('========================')
@@ -61,18 +69,33 @@ class fntsmc:
 
     
     def control_update_outer(self,
-                             e_eta: np.ndarray,
-                             dot_e_eta: np.ndarray,
+                             e: np.ndarray,
+                             de: np.ndarray,
                              dot_eta: np.ndarray,
                              kt: float,
                              m: float,
+                             ref:np.ndarray,
+                             d_ref:np.ndarray,
                              dd_ref: np.ndarray,
-                             obs: np.ndarray):
-        self.s = dot_e_eta + self.k1 * e_eta + self.k2 * self.sig(e_eta, self.alpha1, kt=5)
+                             obs: np.ndarray,
+                             e_max: float= 0.2,
+                             dot_e_max: float= 0.5,
+                             k_com_pos:np.ndarray = np.array([0.0, 0.0, 0.05]),
+                             k_com_vel:np.ndarray = np.array([0.0, 0.0, 0.05])):
+        
+        if e_max is not None:     # 增加对位置误差的输入饱和
+            e = np.clip(e, -e_max, e_max)
+        if dot_e_max is not None:     # 增加对速度误差的输入饱和
+            de = np.clip(de, -dot_e_max, dot_e_max)
+        
+        self.s = (de + k_com_vel * d_ref) + self.k1 * (e + k_com_pos * ref) + self.k2 * self.sig(e + k_com_pos * ref, self.alpha1, kt=5)
         u1 = -kt / m * dot_eta - dd_ref
-        u2 = (self.k1 + self.k2 * self.alpha1 * self.sig(e_eta, self.alpha1 - 1)) * dot_e_eta
+        u2 = (self.k1 + self.k2 * self.alpha1 * self.sig(e + k_com_pos * ref, self.alpha1 - 1)) * (de + k_com_vel * d_ref)
         u3 = obs + self.k3 * np.tanh(5 * self.s) + self.k4 * self.sig(self.s, self.alpha2)
-        self.control_out = -(u1 + u2 + u3)
+        self.yyf_i += self.k_yyf_i * e
+        self.yyf_p = self.k_yyf_p * e
+        self.yyf_d = self.k_yyf_d * de
+        self.control_out = -(u1 + u2 + u3 + self.yyf_i + self.yyf_p + self.yyf_d)
     
     def get_param_from_actor(self, action_from_actor: np.ndarray, update_z:bool = False):
         if np.min(action_from_actor) < 0:
@@ -132,9 +155,24 @@ class fntsmc_consensus(fntsmc):
                                        consensus_e: np.ndarray,
                                        consensus_de: np.ndarray,
                                        Lambda_eta: np.ndarray,
-                                       ):
-        s = consensus_de + self.k1 * consensus_e + self.k2 * self.sig(consensus_e, self.alpha1)
-        sigma = (self.k1 + self.k2 * self.alpha1 * self.sig(consensus_e, self.alpha1 - 1)) * consensus_de
+                                       ref:np.ndarray,
+                                       d_ref:np.ndarray,
+                                       e_max: float = 0.2,
+                                       dot_e_max: float = 0.5,
+                                       k_com_pos: np.ndarray = np.array([0.0, 0.0, 0.05]),
+                                       k_com_vel: np.ndarray = np.array([0.0, 0.0, 0.05])):
+        if e_max is not None:     # 增加对位置误差的输入饱和
+            consensus_e = np.clip(consensus_e, -e_max, e_max)
+        if dot_e_max is not None:     # 增加对速度误差的输入饱和
+            consensus_de = np.clip(consensus_de, -dot_e_max, dot_e_max)
+            
+        s = (consensus_de + k_com_vel * d_ref) + self.k1 * (consensus_e + k_com_pos * ref) + self.k2 * self.sig(consensus_e + k_com_pos * ref, self.alpha1)
+        sigma = (self.k1 + self.k2 * self.alpha1 * self.sig(consensus_e + k_com_pos * ref, self.alpha1 - 1)) * (consensus_de + k_com_vel * d_ref)
         u1 = Lambda_eta + sigma
         u2 = self.k3 * np.tanh(5 * s) + self.k4 * self.sig(s, self.alpha2)
-        self.control_out_consensus = -(u1 + u2) / (d + b)
+        
+        self.yyf_i += self.k_yyf_i * consensus_e
+        self.yyf_p = self.k_yyf_p * consensus_e
+        self.yyf_d = self.k_yyf_d * consensus_de
+        
+        self.control_out_consensus = -(u1 + u2 + self.yyf_i + self.yyf_p + self.yyf_d) / (d + b)

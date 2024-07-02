@@ -14,16 +14,16 @@ def state_cb(msg):
 
 if __name__ == "__main__":
     rospy.init_node("offb_node_py")
+    group = '/uav0'  # '/uav0'
+    state_sub = rospy.Subscriber(group+"/mavros/state", State, callback = state_cb)
 
-    state_sub = rospy.Subscriber("uav0/mavros/state", State, callback = state_cb)
+    local_pos_pub = rospy.Publisher(group+"/mavros/setpoint_position/local", PoseStamped, queue_size=1000)
 
-    local_pos_pub = rospy.Publisher("uav0/mavros/setpoint_position/local", PoseStamped, queue_size=1000)
+    rospy.wait_for_service(group+"/mavros/cmd/arming")
+    arming_client = rospy.ServiceProxy(group+"/mavros/cmd/arming", CommandBool)
 
-    rospy.wait_for_service("/uav0/mavros/cmd/arming")
-    arming_client = rospy.ServiceProxy("uav0/mavros/cmd/arming", CommandBool)
-
-    rospy.wait_for_service("/uav0/mavros/set_mode")
-    set_mode_client = rospy.ServiceProxy("uav0/mavros/set_mode", SetMode)
+    rospy.wait_for_service(group+"/mavros/set_mode")
+    set_mode_client = rospy.ServiceProxy(group+"/mavros/set_mode", SetMode)
 
     # Setpoint publishing MUST be faster than 2Hz
     rate = rospy.Rate(100)

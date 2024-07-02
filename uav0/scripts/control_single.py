@@ -10,10 +10,10 @@ cur_path = os.path.dirname(os.path.abspath(__file__))
 
 DT = 0.01
 pos_ctrl_param = fntsmc_param(
-    k1=np.array([0.3, 0.3, 0.6]).astype(float),
-    k2=np.array([0.5, 0.5, 0.6]).astype(float),
+    k1=np.array([0.3, 0.3, 0.3]).astype(float),
+    k2=np.array([0.5, 0.5, 0.5]).astype(float),
     k3=np.array([0.5, 0.5, 0.5]).astype(float),        # 补偿观测器的，小点就行
-    k4=np.array([6, 6, 6]).astype(float),
+    k4=np.array([3, 3, 3]).astype(float),
     alpha1=np.array([1.01, 1.01, 1.01]).astype(float),
     alpha2=np.array([1.01, 1.01, 1.01]).astype(float),
     dim=3,
@@ -24,7 +24,7 @@ pos_ctrl_param = fntsmc_param(
 if __name__ == "__main__":
     rospy.init_node("uav0_control_single")
     
-    uav_ros = UAV_ROS(m=0.722, dt=DT, time_max=20, pos0=np.array([0.0, 0., 1.0]), offset=np.array([0., 0., 0.]))
+    uav_ros = UAV_ROS(m=1.5, dt=DT, time_max=20, pos0=np.array([0.0, 0., 1.0]), offset=np.array([0., 0., 0.]), group='/uav0')  # '/uav0'
     uav_ros.connect()   # 连接
     uav_ros.offboard_arm()      # OFFBOARD 模式 + 电机解锁
     
@@ -44,17 +44,17 @@ if __name__ == "__main__":
     ctrl_param_record = None
     '''define controllers and observers'''
     
-    # ra = np.array([1.0, 1.0, 0.3, deg2rad(0)])
+    # ra = np.array([0., 0., 0., deg2rad(0)])
     # rp = np.array([10, 10, 10, 10])  # xd yd zd psid 周期
-    # rba = np.array([0, 0, 1, deg2rad(0)])  # xd yd zd psid 幅值偏移
+    # rba = np.array([0, 0, 2.0, deg2rad(0)])  # xd yd zd psid 幅值偏移
     # rbp = np.array([np.pi / 2, 0, 0, 0])  # xd yd zd psid 相位偏移
 
     ra = np.array([1.3, 1.3, 0.4, deg2rad(0)])
-    rp = np.array([6, 6, 10, 10])  # xd yd zd psid 周期
+    rp = np.array([6, 6, 6, 10])  # xd yd zd psid 周期
     rba = np.array([0.0, 0.0, 1.0, deg2rad(0)])  # xd yd zd psid 幅值偏移
     rbp = np.array([np.pi / 2, 0, 0, 0])  # xd yd zd psid 相位偏移
     
-    USE_GAZEBO = False  # 使用gazebo时，无人机质量和悬停油门可能会不同
+    USE_GAZEBO = True  # 使用gazebo时，无人机质量和悬停油门可能会不同
     USE_OBS = True
     
     CONTROLLER = 'FNTSMC'
@@ -114,13 +114,19 @@ if __name__ == "__main__":
                     ctrl_param_record = np.atleast_2d(ctrl_param_np) if ctrl_param_record is None else np.vstack((ctrl_param_record, ctrl_param_np))
                 
                 '''3. generate phi_d, theta_d, throttle'''
-                controller.control_update_outer(e_eta=e,
-                                                dot_e_eta=de,
+                controller.control_update_outer(e=e,
+                                                de=de,
                                                 dot_eta=uav_ros.vel,
                                                 kt=uav_ros.kt,
                                                 m=uav_ros.m,
+                                                ref=eta_d,
+                                                d_ref=dot_eta_d,
                                                 dd_ref=dot2_eta_d,
-                                                obs=observe)
+                                                obs=observe,
+                                                e_max=0.5,
+                                                dot_e_max=1.5,
+                                                k_com_pos=np.array([0.0, 0.0, 0.0]),
+                                                k_com_vel=np.array([0.0, 0.0, 0.0]))
                 phi_d, theta_d, uf = uav_ros.publish_ctrl_cmd(controller.control_out, psi_d, USE_GAZEBO)
             
             '''5. get new uav states from Gazebo'''

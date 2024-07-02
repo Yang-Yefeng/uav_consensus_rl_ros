@@ -217,12 +217,9 @@ def uav_odom_2_uav_state(odom: Odometry) -> np.ndarray:
 
 
 def thrust_2_throttle(thrust: float, use_gazebo: bool):
-    """
-
-    """
     '''线性模型'''
     if use_gazebo:
-        k = 0.37 / 0.727 / 9.8
+        k = 0.56 / 1.5 / 9.8
     else:
         k = 0.31 / 0.727 / 9.8
     _throttle = max(min(k * thrust, 0.9), 0.10)

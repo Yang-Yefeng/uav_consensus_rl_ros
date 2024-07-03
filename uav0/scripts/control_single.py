@@ -27,7 +27,7 @@ pos_ctrl_param = fntsmc_param(
 if __name__ == "__main__":
     rospy.init_node("uav0_control_single")
     
-    uav_ros = UAV_ROS(m=0.722, dt=DT, time_max=20, pos0=np.array([0.0, 0., 1.0]), offset=np.array([0., 0., 0.]), group='/uav0')  # '/uav0'
+    uav_ros = UAV_ROS(m=0.715, dt=DT, time_max=20, pos0=np.array([0.0, 0., 1.0]), offset=np.array([0., 0., 0.]), group='/uav0')  # '/uav0'
     uav_ros.connect()   # 连接
     uav_ros.offboard_arm()      # OFFBOARD 模式 + 电机解锁
     
@@ -36,10 +36,10 @@ if __name__ == "__main__":
     
     '''define controllers and observers'''
     obs_xy = rd3(use_freq=True,
-                 omega=[[0.9, 0.9, 0.9], [0.9, 0.9, 0.9]],  # [0.8, 0.78, 0.75]
+                 omega=[[0.9, 0.9, 0.9], [1.1, 1.1, 1.1]],  # [0.8, 0.78, 0.75]
                  dim=2, dt=DT)
     obs_z = rd3(use_freq=True,
-                omega=[[1.0, 1.0, 1.0]],
+                omega=[[1.2, 1.2, 1.2]],
                 dim=1, dt=DT)
     controller = fntsmc(pos_ctrl_param)
     t_MIEMIE = 5
@@ -47,15 +47,15 @@ if __name__ == "__main__":
     ctrl_param_record = None
     '''define controllers and observers'''
     
-    ra = np.array([0., 0., 0., deg2rad(0)])
-    rp = np.array([10, 10, 10, 10])  # xd yd zd psid 周期
-    rba = np.array([0, 0, 1.0, deg2rad(0)])  # xd yd zd psid 幅值偏移
-    rbp = np.array([np.pi / 2, 0, 0, 0])  # xd yd zd psid 相位偏移
-
-    # ra = np.array([1.3, 1.3, 0.4, deg2rad(0)])
-    # rp = np.array([6, 6, 6, 10])  # xd yd zd psid 周期
-    # rba = np.array([0.0, 0.0, 1.0, deg2rad(0)])  # xd yd zd psid 幅值偏移
+    # ra = np.array([0., 0., 0., deg2rad(0)])
+    # rp = np.array([10, 10, 10, 10])  # xd yd zd psid 周期
+    # rba = np.array([0, 0, 1.5, deg2rad(0)])  # xd yd zd psid 幅值偏移
     # rbp = np.array([np.pi / 2, 0, 0, 0])  # xd yd zd psid 相位偏移
+
+    ra = np.array([1.3, 1.3, 0.4, deg2rad(0)])
+    rp = np.array([6, 6, 6, 10])  # xd yd zd psid 周期
+    rba = np.array([0.0, 0.0, 1.0, deg2rad(0)])  # xd yd zd psid 幅值偏移
+    rbp = np.array([np.pi / 2, 0, 0, 0])  # xd yd zd psid 相位偏移
     
     USE_GAZEBO = False  # 使用gazebo时，无人机质量和悬停油门可能会不同
     USE_OBS = True
@@ -122,11 +122,12 @@ if __name__ == "__main__":
                                                 ref=eta_d,
                                                 d_ref=dot_eta_d,
                                                 dd_ref=dot2_eta_d,
-                                                obs=observe if t_now > t_MIEMIE else np.zeros(3),
+                                                # obs=observe if t_now > t_MIEMIE else np.zeros(3),
+                                                obs=observe if t_now > 0. else np.zeros(3),
                                                 e_max=0.5,
                                                 dot_e_max=1.5,
-                                                k_com_pos=np.array([0.0, 0.0, 0.05]),
-                                                k_com_vel=np.array([0.0, 0.0, 0.05]))
+                                                k_com_pos=np.array([0.0, 0.0, -0.05]),
+                                                k_com_vel=np.array([0.0, 0.0, -0.05]))
                 phi_d, theta_d, uf = uav_ros.publish_ctrl_cmd(controller.control_out, psi_d, USE_GAZEBO)
             
             '''5. get new uav states from Gazebo'''

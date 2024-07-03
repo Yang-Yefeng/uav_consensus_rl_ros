@@ -13,7 +13,6 @@ battery = BatteryState()
 attitude = AttitudeTarget()
 
 cur_path = os.path.dirname(os.path.abspath(__file__))
-print(cur_path)
 
 def state_cb(msg: State):
     global current_state

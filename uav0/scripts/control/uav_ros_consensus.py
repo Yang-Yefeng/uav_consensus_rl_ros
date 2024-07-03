@@ -23,11 +23,10 @@ class UAV_ROS_Consensus:
                  dt: float = 0.01,
                  time_max: float = 30.,
                  pos0: np.ndarray = np.zeros(3),
-                 offset: np.ndarray = np.zeros(3),
                  uav_existance: list = None,
-                 adj:list = None,
-                 d:float=0.,
-                 b:float=0.):
+                 adj: list = None,
+                 d: float = 0.,
+                 b: float = 0.):
         if uav_existance is None:
             uav_existance = [1, 0, 0, 0]
         if adj is None:
@@ -40,7 +39,6 @@ class UAV_ROS_Consensus:
         self.kt = 1e-3
         
         self.pos0 = pos0
-        self.offset = offset
         
         self.pos = np.zeros(3)
         self.vel = np.zeros(3)
@@ -180,11 +178,11 @@ class UAV_ROS_Consensus:
     def cal_consensus_e(self, nu: np.ndarray, eta_d: np.ndarray):
         e1 = (self.d + self.b) * (self.eta() - nu) - self.b * eta_d
         Lambda = (self.adj[0] * (self.eta() - nu) +
-                  self.adj[1]*(self.uav_msg_1.eta - self.uav_msg_1.nu) +
-                  self.adj[2]*(self.uav_msg_2.eta - self.uav_msg_2.nu) +
-                  self.adj[3]*(self.uav_msg_3.eta - self.uav_msg_3.nu))
+                  self.adj[1] * (self.uav_msg_1.eta - self.uav_msg_1.nu) +
+                  self.adj[2] * (self.uav_msg_2.eta - self.uav_msg_2.nu) +
+                  self.adj[3] * (self.uav_msg_3.eta - self.uav_msg_3.nu))
         self.consensus_e = e1 - Lambda
-        
+    
     def cal_consensus_de(self, dot_nu: np.ndarray, dot_eta_d: np.ndarray):
         dot_e1 = (self.d + self.b) * (self.dot_eta() - dot_nu) - self.b * dot_eta_d
         dot_Lambda = (self.adj[0] * (self.dot_eta() - dot_nu) +
@@ -193,22 +191,22 @@ class UAV_ROS_Consensus:
                       self.adj[3] * (self.uav_msg_3.dot_eta - self.uav_msg_3.dot_nu))
         self.consensus_e = dot_e1 - dot_Lambda
     
-    def cal_Lambda_eta(self, dot2_eat_d:np.ndarray, dot2_nu:np.ndarray, obs:np.ndarray):
-        lambda_eta = -self.b * dot2_eat_d + (self.d + self.b)(-self.kt / self.m * self.dot_eta() + obs - dot2_nu)
-        lambda_eta -= (self.adj[0] * (self.uav_msg_0.second_order_dynamic - self.uav_msg_0.dot2_nu)+\
-                       self.adj[1] * (self.uav_msg_1.second_order_dynamic - self.uav_msg_1.dot2_nu) + \
-                       self.adj[2] * (self.uav_msg_2.second_order_dynamic - self.uav_msg_2.dot2_nu) + \
+    def cal_Lambda_eta(self, dot2_eat_d: np.ndarray, dot2_nu: np.ndarray, obs: np.ndarray):
+        lambda_eta = -self.b * dot2_eat_d + (self.d + self.b) * (-self.kt / self.m * self.dot_eta() + obs - dot2_nu)
+        lambda_eta -= (self.adj[0] * (self.uav_msg_0.second_order_dynamic - self.uav_msg_0.dot2_nu) +
+                       self.adj[1] * (self.uav_msg_1.second_order_dynamic - self.uav_msg_1.dot2_nu) +
+                       self.adj[2] * (self.uav_msg_2.second_order_dynamic - self.uav_msg_2.dot2_nu) +
                        self.adj[3] * (self.uav_msg_3.second_order_dynamic - self.uav_msg_3.dot2_nu))
         self.lambda_eta = lambda_eta.copy()
     
     def uav_msg_publish(self,
-                        ref:np.ndarray,
-                        dot_ref:np.ndarray,
-                        nu:np.ndarray,
-                        dot_nu:np.ndarray,
-                        dot2_nu:np.ndarray,
-                        ctrl:np.ndarray,
-                        obs:np.ndarray):
+                        ref: np.ndarray,
+                        dot_ref: np.ndarray,
+                        nu: np.ndarray,
+                        dot_nu: np.ndarray,
+                        dot2_nu: np.ndarray,
+                        ctrl: np.ndarray,
+                        obs: np.ndarray):
         self.uav_msg_0.are_you_ok.data = True if (self.global_flag == 2 or self.global_flag == 3) else False
         self.uav_msg_0.finish.data = True if self.global_flag == 3 else False
         self.uav_msg_0.eta = self.eta().tolist()
@@ -230,9 +228,9 @@ class UAV_ROS_Consensus:
         self.current_state = msg
     
     def uav_odom_cb(self, msg: Odometry):
-        self.uav_odom.pose.pose.position.x = msg.pose.pose.position.x + self.offset[0]
-        self.uav_odom.pose.pose.position.y = msg.pose.pose.position.y + self.offset[1]
-        self.uav_odom.pose.pose.position.z = msg.pose.pose.position.z + self.offset[2]
+        self.uav_odom.pose.pose.position.x = msg.pose.pose.position.x
+        self.uav_odom.pose.pose.position.y = msg.pose.pose.position.y
+        self.uav_odom.pose.pose.position.z = msg.pose.pose.position.z
         self.uav_odom.pose.pose.orientation.x = msg.pose.pose.orientation.x
         self.uav_odom.pose.pose.orientation.y = msg.pose.pose.orientation.y
         self.uav_odom.pose.pose.orientation.z = msg.pose.pose.orientation.z
@@ -249,9 +247,9 @@ class UAV_ROS_Consensus:
         self.voltage = msg.voltage
     
     def approaching(self):
-        self.pose.pose.position.x = self.pos0[0] - self.offset[0]
-        self.pose.pose.position.y = self.pos0[1] - self.offset[1]
-        self.pose.pose.position.z = self.pos0[2] - self.offset[2]
+        self.pose.pose.position.x = self.pos0[0]
+        self.pose.pose.position.y = self.pos0[1]
+        self.pose.pose.position.z = self.pos0[2]
         
         cmd_q = tf.transformations.quaternion_from_euler(0., 0., 0)
         self.pose.pose.orientation.x = cmd_q[0]

@@ -26,8 +26,10 @@ if __name__ == "__main__":
                                 dt=DT,
                                 time_max=20,
                                 pos0=np.array([1.5, 0., 1.0]),
-                                offset=np.array([1.5, 0., 0.]),
-                                uav_existance=[1, 0, 0, 0])
+                                uav_existance=[1, 0, 0, 0],
+                                adj=[0,0,0,0],
+                                d=0.,
+                                b=1.)
     uav_ros.connect()  # 连接
     uav_ros.offboard_arm()  # OFFBOARD 模式 + 电机解锁
     
@@ -110,9 +112,9 @@ if __name__ == "__main__":
             
             '''3. Update the parameters of FNTSMC if RL is used'''
             if CONTROLLER == 'PX4-PID':
-                uav_ros.pose.pose.position.x = ref[0] - uav_ros.offset[0]
-                uav_ros.pose.pose.position.y = ref[1] - uav_ros.offset[1]
-                uav_ros.pose.pose.position.z = ref[2] - uav_ros.offset[2]
+                uav_ros.pose.pose.position.x = ref[0]
+                uav_ros.pose.pose.position.y = ref[1]
+                uav_ros.pose.pose.position.z = ref[2]
                 uav_ros.local_pos_pub.publish(uav_ros.pose)
                 phi_d, theta_d, uf = 0., 0., 0.
             else:
@@ -124,7 +126,9 @@ if __name__ == "__main__":
                     ctrl_param_record = np.atleast_2d(ctrl_param_np) if ctrl_param_record is None else np.vstack((ctrl_param_record, ctrl_param_np))
                 
                 '''3. generate phi_d, theta_d, throttle'''
-                controller.control_update_outer_consensus(consensus_e=uav_ros.consensus_e,
+                controller.control_update_outer_consensus(b=uav_ros.b,
+                                                          d=uav_ros.d,
+                                                          consensus_e=uav_ros.consensus_e,
                                                           consensus_de=uav_ros.consensus_de,
                                                           Lambda_eta=uav_ros.lambda_eta,
                                                           ref=eta_d + nu,

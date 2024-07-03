@@ -82,9 +82,6 @@ if __name__ == "__main__":
                 print('time: ', t_now)
             
             '''1. generate reference command and uncertainty'''
-            # if t_now < t_MIEMIE:
-            #     ref, dot_ref, dot2_ref = ref_all[0], np.zeros(3), np.zeros(3)
-            # else:
             ref, dot_ref, dot2_ref = ref_all[uav_ros.n], dot_ref_all[uav_ros.n], dot2_ref_all[uav_ros.n]
             
             '''2. generate outer-loop reference signal 'eta_d' and its 1st, 2nd, and 3rd-order derivatives'''

@@ -126,8 +126,8 @@ if __name__ == "__main__":
                                                 obs=observe if t_now > 0. else np.zeros(3),
                                                 e_max=0.5,
                                                 dot_e_max=1.5,
-                                                k_com_pos=np.array([0.0, 0.0, -0.05]),
-                                                k_com_vel=np.array([0.0, 0.0, -0.05]))
+                                                k_com_pos=np.array([0.05, 0.05, -0.1]),
+                                                k_com_vel=np.array([0.05, 0.05, -0.1]))
                 phi_d, theta_d, uf = uav_ros.publish_ctrl_cmd(controller.control_out, psi_d, USE_GAZEBO)
             
             '''5. get new uav states from Gazebo'''

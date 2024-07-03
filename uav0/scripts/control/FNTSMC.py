@@ -49,9 +49,9 @@ class fntsmc:
         self.yyf_d = np.zeros(3)
         self.yyf_p = np.zeros(3)
         
-        self.k_yyf_i = np.array([0.00, 0.00, 0.00])
-        self.k_yyf_d = np.array([0., 0., 0.])
-        self.k_yyf_p = np.array([0.0, 0.0, 0.])
+        self.k_yyf_i = np.array([0.002, 0.002, 0.0015])
+        self.k_yyf_d = np.array([0.15, 0.15, 0.12])
+        self.k_yyf_p = np.array([0.1, 0.1, 0.06])
     
     def print_param(self):
         print('========================')

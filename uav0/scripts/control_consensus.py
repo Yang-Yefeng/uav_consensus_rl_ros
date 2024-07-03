@@ -15,6 +15,12 @@ pos_ctrl_param = fntsmc_param(
     k4=np.array([6, 6, 6]),
     alpha1=np.array([1.01, 1.01, 1.01]),
     alpha2=np.array([1.01, 1.01, 1.01]),
+    k_yyf_i=np.array([0.002, 0.002, 0.0015]),
+    k_yyf_d=np.array([0.15, 0.15, 0.12]),
+    k_yyf_p=np.array([0.1, 0.1, 0.06]),
+    k_com_pos=np.array([0.05, 0.05, -0.1]),
+    k_com_vel=np.array([0.05, 0.05, -0.1]),
+    k_com_acc=np.array([0.05, 0.05, -0.1]),
     dim=3,
     dt=DT
 )
@@ -25,7 +31,7 @@ if __name__ == "__main__":
     uav_ros = UAV_ROS_Consensus(m=0.722,
                                 dt=DT,
                                 time_max=20,
-                                pos0=np.array([1.5, 0., 1.0]),
+                                pos0=np.array([0.5, 0., 1.0]),
                                 uav_existance=[1, 0, 0, 0],
                                 adj=[0,0,0,0],
                                 d=0.,
@@ -134,9 +140,7 @@ if __name__ == "__main__":
                                                           ref=eta_d + nu,
                                                           d_ref=dot_eta_d + dot_nu,
                                                           e_max=0.5,
-                                                          dot_e_max = 1.0,
-                                                          k_com_pos= np.array([0.0, 0.0, 0.0]),
-                                                          k_com_vel= np.array([0.0, 0.0, 0.0]))
+                                                          dot_e_max = 1.0)
                 
                 phi_d, theta_d, dot_phi_d, dot_theta_d, uf = uav_ros.publish_ctrl_cmd(ctrl=controller.control_out_consensus,
                                                                                       psi_d=psi_d,

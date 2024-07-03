@@ -9,6 +9,12 @@ class fntsmc_param:
                  k4: np.ndarray = np.zeros(3),
                  alpha1: np.ndarray = 1.01 * np.ones(3),
                  alpha2: np.ndarray = 1.01 * np.ones(3),
+                 k_com_pos: np.ndarray = np.zeros(3),
+                 k_com_vel: np.ndarray = np.zeros(3),
+                 k_com_acc: np.ndarray = np.zeros(3),
+                 k_yyf_p: np.ndarray = np.zeros(3),
+                 k_yyf_i: np.ndarray = np.zeros(3),
+                 k_yyf_d: np.ndarray = np.zeros(3),
                  dim: int = 3,
                  dt: float = 0.01
                  ):
@@ -18,6 +24,14 @@ class fntsmc_param:
         self.k4 = k4
         self.alpha1 = alpha1
         self.alpha2 = alpha2
+        
+        self.k_com_pos = k_com_pos
+        self.k_com_vel = k_com_vel
+        self.k_com_acc = k_com_acc
+        self.k_yyf_p = k_yyf_p
+        self.k_yyf_i = k_yyf_i
+        self.k_yyf_d = k_yyf_d
+        
         self.dim = dim
         self.dt = dt
 
@@ -31,6 +45,12 @@ class fntsmc:
                  k4: np.ndarray = np.array([6, 6, 6]),
                  alpha1: np.ndarray = np.array([1.01, 1.01, 1.01]),
                  alpha2: np.ndarray = np.array([1.01, 1.01, 1.01]),
+                 k_com_pos: np.ndarray = np.zeros(3),
+                 k_com_vel: np.ndarray = np.zeros(3),
+                 k_com_acc: np.ndarray = np.zeros(3),
+                 yyf_p: np.ndarray = np.zeros(3),
+                 yyf_i: np.ndarray = np.zeros(3),
+                 yyf_d: np.ndarray = np.zeros(3),
                  dim: int = 3,
                  dt: float = 0.01):
         self.k1 = k1.copy() if param is None else param.k1.copy()
@@ -39,6 +59,14 @@ class fntsmc:
         self.k4 = k4.copy() if param is None else param.k4.copy()
         self.alpha1 = alpha1.copy() if param is None else param.alpha1.copy()
         self.alpha2 = alpha2.copy() if param is None else param.alpha2.copy()
+        
+        self.k_com_pos = k_com_pos if param is None else param.k_com_pos.copy()
+        self.k_com_vel = k_com_vel if param is None else param.k_com_vel.copy()
+        self.k_com_acc = k_com_acc if param is None else param.k_com_acc.copy()
+        self.k_yyf_p = yyf_p if param is None else param.k_yyf_p.copy()
+        self.k_yyf_i = yyf_i if param is None else param.k_yyf_i.copy()
+        self.k_yyf_d = yyf_d if param is None else param.k_yyf_d.copy()
+        
         self.dt = dt if param is None else param.dt
         self.dim = dim if param is None else param.dim
         self.s = np.zeros(self.dim)
@@ -48,10 +76,6 @@ class fntsmc:
         self.yyf_i = np.zeros(3)
         self.yyf_d = np.zeros(3)
         self.yyf_p = np.zeros(3)
-        
-        self.k_yyf_i = np.array([0.002, 0.002, 0.0015])
-        self.k_yyf_d = np.array([0.15, 0.15, 0.12])
-        self.k_yyf_p = np.array([0.1, 0.1, 0.06])
     
     def print_param(self):
         print('========================')
@@ -78,18 +102,16 @@ class fntsmc:
                              dd_ref: np.ndarray,
                              obs: np.ndarray,
                              e_max: float = 0.2,
-                             dot_e_max: float = 0.5,
-                             k_com_pos: np.ndarray = np.array([0.0, 0.0, 0.05]),
-                             k_com_vel: np.ndarray = np.array([0.0, 0.0, 0.05])):
+                             dot_e_max: float = 0.5):
         
         if e_max is not None:  # 增加对位置误差的输入饱和
             e = np.clip(e, -e_max, e_max)
         if dot_e_max is not None:  # 增加对速度误差的输入饱和
             de = np.clip(de, -dot_e_max, dot_e_max)
         
-        self.s = (de + k_com_vel * d_ref) + self.k1 * (e + k_com_pos * ref) + self.k2 * self.sig(e + k_com_pos * ref, self.alpha1, kt=5)
+        self.s = (de + self.k_com_vel * d_ref) + self.k1 * (e + self.k_com_pos * ref) + self.k2 * self.sig(e + self.k_com_pos * ref, self.alpha1, kt=5)
         u1 = -kt / m * dot_eta - dd_ref
-        u2 = (self.k1 + self.k2 * self.alpha1 * self.sig(e + k_com_pos * ref, self.alpha1 - 1)) * (de + k_com_vel * d_ref)
+        u2 = (self.k1 + self.k2 * self.alpha1 * self.sig(e + self.k_com_pos * ref, self.alpha1 - 1)) * (de + self.k_com_vel * d_ref)
         u3 = obs + self.k3 * np.tanh(5 * self.s) + self.k4 * self.sig(self.s, self.alpha2)
         self.yyf_i += self.k_yyf_i * e
         self.yyf_p = self.k_yyf_p * e
@@ -145,9 +167,17 @@ class fntsmc_consensus(fntsmc):
                  k4: np.ndarray = np.zeros(3),  # 滑模误差收敛参数，k5 控制滑模收敛速度
                  alpha1: np.ndarray = 1.01 * np.ones(3),  # 状态误差收敛指数
                  alpha2: np.ndarray = 1.01 * np.ones(3),  # 滑模误差收敛指数
+                 k_com_pos: np.ndarray = np.zeros(3),
+                 k_com_vel: np.ndarray = np.zeros(3),
+                 k_com_acc: np.ndarray = np.zeros(3),
+                 yyf_p: np.ndarray = np.zeros(3),
+                 yyf_i: np.ndarray = np.zeros(3),
+                 yyf_d: np.ndarray = np.zeros(3),
                  dim: int = 3,
                  dt: float = 0.01):
-        super(fntsmc_consensus, self).__init__(param, k1, k2, k3, k4, alpha1, alpha2, dim, dt)
+        super(fntsmc_consensus, self).__init__(param, k1, k2, k3, k4, alpha1, alpha2,
+                                               k_com_pos, k_com_vel, k_com_acc,
+                                               yyf_p, yyf_i, yyf_d, dim, dt)
         self.control_out_consensus = np.zeros(self.dim)
     
     def control_update_outer_consensus(self,
@@ -159,16 +189,14 @@ class fntsmc_consensus(fntsmc):
                                        ref: np.ndarray,
                                        d_ref: np.ndarray,
                                        e_max: float = 0.2,
-                                       dot_e_max: float = 0.5,
-                                       k_com_pos: np.ndarray = np.array([0.0, 0.0, 0.05]),
-                                       k_com_vel: np.ndarray = np.array([0.0, 0.0, 0.05])):
+                                       dot_e_max: float = 1.5):
         if e_max is not None:  # 增加对位置误差的输入饱和
             consensus_e = np.clip(consensus_e, -e_max, e_max)
         if dot_e_max is not None:  # 增加对速度误差的输入饱和
             consensus_de = np.clip(consensus_de, -dot_e_max, dot_e_max)
         
-        s = (consensus_de + k_com_vel * d_ref) + self.k1 * (consensus_e + k_com_pos * ref) + self.k2 * self.sig(consensus_e + k_com_pos * ref, self.alpha1)
-        sigma = (self.k1 + self.k2 * self.alpha1 * self.sig(consensus_e + k_com_pos * ref, self.alpha1 - 1)) * (consensus_de + k_com_vel * d_ref)
+        s = (consensus_de + self.k_com_vel * d_ref) + self.k1 * (consensus_e + self.k_com_pos * ref) + self.k2 * self.sig(consensus_e + self.k_com_pos * ref, self.alpha1)
+        sigma = (self.k1 + self.k2 * self.alpha1 * self.sig(consensus_e + self.k_com_pos * ref, self.alpha1 - 1)) * (consensus_de + self.k_com_vel * d_ref)
         u1 = Lambda_eta + sigma
         u2 = self.k3 * np.tanh(5 * s) + self.k4 * self.sig(s, self.alpha2)
         

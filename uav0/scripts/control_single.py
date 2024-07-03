@@ -12,24 +12,30 @@ from control.utils import *
 cur_path = os.path.dirname(os.path.abspath(__file__))
 
 DT = 0.01
+# 单飞机圆
 pos_ctrl_param = fntsmc_param(
     k1=np.array([0.3, 0.3, 0.3]).astype(float),
     k2=np.array([0.5, 0.5, 0.5]).astype(float),
-    k3=np.array([0.5, 0.5, 0.5]).astype(float),        # 补偿观测器的，小点就行
+    k3=np.array([0.5, 0.5, 0.5]).astype(float),  # 补偿观测器的，小点就行
     k4=np.array([3, 3, 3]).astype(float),
     alpha1=np.array([1.01, 1.01, 1.01]).astype(float),
     alpha2=np.array([1.01, 1.01, 1.01]).astype(float),
+    k_yyf_i=np.array([0.002, 0.002, 0.0015]),
+    k_yyf_d=np.array([0.15, 0.15, 0.12]),
+    k_yyf_p=np.array([0.1, 0.1, 0.06]),
+    k_com_pos=np.array([0.05, 0.05, -0.1]),
+    k_com_vel=np.array([0.05, 0.05, -0.1]),
+    k_com_acc=np.array([0.05, 0.05, -0.1]),
     dim=3,
     dt=DT
 )
-
 
 if __name__ == "__main__":
     rospy.init_node("uav0_control_single")
     
     uav_ros = UAV_ROS(m=0.715, dt=DT, time_max=20, pos0=np.array([0.0, 0., 1.0]), offset=np.array([0., 0., 0.]), group='/uav0')  # '/uav0'
-    uav_ros.connect()   # 连接
-    uav_ros.offboard_arm()      # OFFBOARD 模式 + 电机解锁
+    uav_ros.connect()  # 连接
+    uav_ros.offboard_arm()  # OFFBOARD 模式 + 电机解锁
     
     print('Approaching...')
     uav_ros.global_flag = 1
@@ -51,7 +57,7 @@ if __name__ == "__main__":
     # rp = np.array([10, 10, 10, 10])  # xd yd zd psid 周期
     # rba = np.array([0, 0, 1.5, deg2rad(0)])  # xd yd zd psid 幅值偏移
     # rbp = np.array([np.pi / 2, 0, 0, 0])  # xd yd zd psid 相位偏移
-
+    
     ra = np.array([1.3, 1.3, 0.4, deg2rad(0)])
     rp = np.array([6, 6, 6, 10])  # xd yd zd psid 周期
     rba = np.array([0.0, 0.0, 1.0, deg2rad(0)])  # xd yd zd psid 幅值偏移
@@ -108,7 +114,7 @@ if __name__ == "__main__":
             else:
                 if CONTROLLER == 'RL':
                     ctrl_param_np = np.array(uav_ros.ctrl_param.data).astype(float)
-                    if t_now > t_MIEMIE:        # 前几秒过渡一下
+                    if t_now > t_MIEMIE:  # 前几秒过渡一下
                         controller.get_param_from_actor(ctrl_param_np, update_z=False)
                     # controller.print_param()
                     ctrl_param_record = np.atleast_2d(ctrl_param_np) if ctrl_param_record is None else np.vstack((ctrl_param_record, ctrl_param_np))
@@ -125,9 +131,7 @@ if __name__ == "__main__":
                                                 # obs=observe if t_now > t_MIEMIE else np.zeros(3),
                                                 obs=observe if t_now > 0. else np.zeros(3),
                                                 e_max=0.5,
-                                                dot_e_max=1.5,
-                                                k_com_pos=np.array([0.05, 0.05, -0.1]),
-                                                k_com_vel=np.array([0.05, 0.05, -0.1]))
+                                                dot_e_max=1.5)
                 phi_d, theta_d, uf = uav_ros.publish_ctrl_cmd(controller.control_out, psi_d, USE_GAZEBO)
             
             '''5. get new uav states from Gazebo'''

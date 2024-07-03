@@ -113,10 +113,12 @@ class fntsmc:
         u1 = -kt / m * dot_eta - dd_ref
         u2 = (self.k1 + self.k2 * self.alpha1 * self.sig(e + self.k_com_pos * ref, self.alpha1 - 1)) * (de + self.k_com_vel * d_ref)
         u3 = obs + self.k3 * np.tanh(5 * self.s) + self.k4 * self.sig(self.s, self.alpha2)
+        
         self.yyf_i += self.k_yyf_i * e
         self.yyf_p = self.k_yyf_p * e
         self.yyf_d = self.k_yyf_d * de
-        self.control_out = -(u1 + u2 + u3 + self.yyf_i + self.yyf_p + self.yyf_d)
+        
+        self.control_out = -(u1 + u2 + u3 + self.yyf_i + self.yyf_p + self.yyf_d + self.k_com_acc*dd_ref)
     
     def get_param_from_actor(self, action_from_actor: np.ndarray, update_z: bool = False):
         if np.min(action_from_actor) < 0:

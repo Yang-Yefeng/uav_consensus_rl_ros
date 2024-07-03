@@ -12,28 +12,65 @@ from control.utils import *
 cur_path = os.path.dirname(os.path.abspath(__file__))
 
 DT = 0.01
-# 单飞机圆
+
+# 单飞机定点, 砝码风扇
 pos_ctrl_param = fntsmc_param(
     k1=np.array([0.3, 0.3, 0.3]).astype(float),
     k2=np.array([0.5, 0.5, 0.5]).astype(float),
-    k3=np.array([0.5, 0.5, 0.5]).astype(float),  # 补偿观测器的，小点就行
-    k4=np.array([3, 3, 3]).astype(float),
+    k3=np.array([1.5, 1.5, 1.5]).astype(float),  # 补偿观测器的，小点就行
+    k4=np.array([6, 6, 6]).astype(float),
     alpha1=np.array([1.01, 1.01, 1.01]).astype(float),
     alpha2=np.array([1.01, 1.01, 1.01]).astype(float),
-    k_yyf_i=np.array([0.002, 0.002, 0.0015]),
-    k_yyf_d=np.array([0.15, 0.15, 0.12]),
-    k_yyf_p=np.array([0.1, 0.1, 0.06]),
-    k_com_pos=np.array([0.05, 0.05, -0.1]),
-    k_com_vel=np.array([0.05, 0.05, -0.1]),
-    k_com_acc=np.array([0.05, 0.05, -0.1]),
+    k_yyf_i=np.array([0.00, 0.00, 0.00]),
+    k_yyf_d=np.array([0., 0., 0.]),
+    k_yyf_p=np.array([0., 0., 0.0]),
+    k_com_pos=np.array([0.05, 0.05, -0.08]),
+    k_com_vel=np.array([0.05, 0.05, 0.1]),
+    k_com_acc=np.array([0.0, 0.0, 0.0]),
     dim=3,
     dt=DT
 )
 
+# # 单飞机圆, 不加砝码
+# pos_ctrl_param = fntsmc_param(
+#     k1=np.array([0.3, 0.3, 0.3]).astype(float),
+#     k2=np.array([0.5, 0.5, 0.5]).astype(float),
+#     k3=np.array([0.5, 0.5, 0.5]).astype(float),  # 补偿观测器的，小点就行
+#     k4=np.array([3, 3, 3]).astype(float),
+#     alpha1=np.array([1.01, 1.01, 1.01]).astype(float),
+#     alpha2=np.array([1.01, 1.01, 1.01]).astype(float),
+#     k_yyf_i=np.array([0.002, 0.002, 0.001]),
+#     k_yyf_d=np.array([0.15, 0.15, 0.10]),
+#     k_yyf_p=np.array([0.1, 0.1, 0.06]),
+#     k_com_pos=np.array([0.05, 0.05, -0.1]),
+#     k_com_vel=np.array([0.05, 0.05, -0.1]),
+#     k_com_acc=np.array([0.0, 0.0, 0.0]),
+#     dim=3,
+#     dt=DT
+# )
+
+# # 单飞机圆, 加 200g 砝码
+# pos_ctrl_param = fntsmc_param(
+#     k1=np.array([0.3, 0.3, 0.3]).astype(float),
+#     k2=np.array([0.5, 0.5, 0.5]).astype(float),
+#     k3=np.array([0.5, 0.5, 1.5]).astype(float),  # 补偿观测器的，小点就行
+#     k4=np.array([3, 3, 8]).astype(float),
+#     alpha1=np.array([1.01, 1.01, 1.01]).astype(float),
+#     alpha2=np.array([1.01, 1.01, 1.01]).astype(float),
+#     k_yyf_i=np.array([0.002, 0.002, 0.001]),
+#     k_yyf_d=np.array([0.15, 0.15, 0.2]),
+#     k_yyf_p=np.array([0.1, 0.1, 0.1]),
+#     k_com_pos=np.array([0.05, 0.1, -0.1]),
+#     k_com_vel=np.array([0.05, 0.1, 0.0]),
+#     k_com_acc=np.array([0.1, 0.1, -0.2]),
+#     dim=3,
+#     dt=DT
+# )
+
 if __name__ == "__main__":
     rospy.init_node("uav0_control_single")
     
-    uav_ros = UAV_ROS(m=0.715, dt=DT, time_max=20, pos0=np.array([0.0, 0., 1.0]), offset=np.array([0., 0., 0.]), group='/uav0')  # '/uav0'
+    uav_ros = UAV_ROS(m=0.715, dt=DT, time_max=20, pos0=np.array([2.45, -1, 1.0]), offset=np.array([0., 0., 0.]), group='/uav0')  # '/uav0'
     uav_ros.connect()  # 连接
     uav_ros.offboard_arm()  # OFFBOARD 模式 + 电机解锁
     
@@ -42,10 +79,10 @@ if __name__ == "__main__":
     
     '''define controllers and observers'''
     obs_xy = rd3(use_freq=True,
-                 omega=[[0.9, 0.9, 0.9], [1.1, 1.1, 1.1]],  # [0.8, 0.78, 0.75]
+                 omega=[[0.9, 0.9, 0.9], [0.95, 0.95, 0.95]],  # [0.8, 0.78, 0.75]
                  dim=2, dt=DT)
     obs_z = rd3(use_freq=True,
-                omega=[[1.2, 1.2, 1.2]],
+                omega=[[1.0, 1.0, 1.0]],
                 dim=1, dt=DT)
     controller = fntsmc(pos_ctrl_param)
     t_MIEMIE = 5
@@ -53,15 +90,15 @@ if __name__ == "__main__":
     ctrl_param_record = None
     '''define controllers and observers'''
     
-    # ra = np.array([0., 0., 0., deg2rad(0)])
-    # rp = np.array([10, 10, 10, 10])  # xd yd zd psid 周期
-    # rba = np.array([0, 0, 1.5, deg2rad(0)])  # xd yd zd psid 幅值偏移
-    # rbp = np.array([np.pi / 2, 0, 0, 0])  # xd yd zd psid 相位偏移
-    
-    ra = np.array([1.3, 1.3, 0.4, deg2rad(0)])
-    rp = np.array([6, 6, 6, 10])  # xd yd zd psid 周期
-    rba = np.array([0.0, 0.0, 1.0, deg2rad(0)])  # xd yd zd psid 幅值偏移
+    ra = np.array([0., 0., 0., deg2rad(0)])
+    rp = np.array([10, 10, 10, 10])  # xd yd zd psid 周期
+    rba = np.array([0, 0, 1.3, deg2rad(0)])  # xd yd zd psid 幅值偏移
     rbp = np.array([np.pi / 2, 0, 0, 0])  # xd yd zd psid 相位偏移
+    
+    # ra = np.array([1.3, 1.3, 0.4, deg2rad(0)])
+    # rp = np.array([6, 6, 6, 10])  # xd yd zd psid 周期
+    # rba = np.array([0.0, 0.0, 1.0, deg2rad(0)])  # xd yd zd psid 幅值偏移
+    # rbp = np.array([np.pi / 2, 0, 0, 0])  # xd yd zd psid 相位偏移
     
     USE_GAZEBO = False  # 使用gazebo时，无人机质量和悬停油门可能会不同
     USE_OBS = True

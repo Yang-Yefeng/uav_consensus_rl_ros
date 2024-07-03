@@ -27,7 +27,7 @@ pos_ctrl_param = fntsmc_param(
 if __name__ == "__main__":
     rospy.init_node("uav0_control_single")
     
-    uav_ros = UAV_ROS(m=1.5, dt=DT, time_max=20, pos0=np.array([0.0, 0., 1.0]), offset=np.array([0., 0., 0.]), group='/uav0')  # '/uav0'
+    uav_ros = UAV_ROS(m=0.722, dt=DT, time_max=20, pos0=np.array([0.0, 0., 1.0]), offset=np.array([0., 0., 0.]), group='/uav0')  # '/uav0'
     uav_ros.connect()   # 连接
     uav_ros.offboard_arm()      # OFFBOARD 模式 + 电机解锁
     
@@ -47,17 +47,17 @@ if __name__ == "__main__":
     ctrl_param_record = None
     '''define controllers and observers'''
     
-    # ra = np.array([0., 0., 0., deg2rad(0)])
-    # rp = np.array([10, 10, 10, 10])  # xd yd zd psid 周期
-    # rba = np.array([0, 0, 1.0, deg2rad(0)])  # xd yd zd psid 幅值偏移
-    # rbp = np.array([np.pi / 2, 0, 0, 0])  # xd yd zd psid 相位偏移
-
-    ra = np.array([1.3, 1.3, 0.4, deg2rad(0)])
-    rp = np.array([6, 6, 6, 10])  # xd yd zd psid 周期
-    rba = np.array([0.0, 0.0, 1.0, deg2rad(0)])  # xd yd zd psid 幅值偏移
+    ra = np.array([0., 0., 0., deg2rad(0)])
+    rp = np.array([10, 10, 10, 10])  # xd yd zd psid 周期
+    rba = np.array([0, 0, 1.0, deg2rad(0)])  # xd yd zd psid 幅值偏移
     rbp = np.array([np.pi / 2, 0, 0, 0])  # xd yd zd psid 相位偏移
+
+    # ra = np.array([1.3, 1.3, 0.4, deg2rad(0)])
+    # rp = np.array([6, 6, 6, 10])  # xd yd zd psid 周期
+    # rba = np.array([0.0, 0.0, 1.0, deg2rad(0)])  # xd yd zd psid 幅值偏移
+    # rbp = np.array([np.pi / 2, 0, 0, 0])  # xd yd zd psid 相位偏移
     
-    USE_GAZEBO = True  # 使用gazebo时，无人机质量和悬停油门可能会不同
+    USE_GAZEBO = False  # 使用gazebo时，无人机质量和悬停油门可能会不同
     USE_OBS = True
     
     CONTROLLER = 'FNTSMC'

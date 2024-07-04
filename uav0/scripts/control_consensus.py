@@ -87,10 +87,7 @@ if __name__ == "__main__":
         
         if uav_ros.global_flag == 1:  # approaching
             okk = uav_ros.approaching()
-            if (okk and
-                uav_ros.uav_msg_1.are_you_ok.data and
-                uav_ros.uav_msg_2.are_you_ok.data and
-                uav_ros.uav_msg_3.are_you_ok.data):
+            if okk and uav_ros.check_other_uav_ok():
                 uav_ros.global_flag = 2
             t0 = rospy.Time.now().to_sec()
         elif uav_ros.global_flag == 2:  # control

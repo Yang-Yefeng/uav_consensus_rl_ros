@@ -199,6 +199,11 @@ class UAV_ROS_Consensus:
                        self.adj[3] * (self.uav_msg_3.second_order_dynamic - self.uav_msg_3.dot2_nu))
         self.lambda_eta = lambda_eta.copy()
     
+    def check_other_uav_ok(self):
+        return (self.uav_msg_1.are_you_ok.data and
+                self.uav_msg_2.are_you_ok.data and
+                self.uav_msg_3.are_you_ok.data)
+    
     def uav_msg_publish(self,
                         ref: np.ndarray,
                         dot_ref: np.ndarray,

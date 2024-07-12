@@ -71,12 +71,10 @@ def uo_2_ref_angle_throttle2(control: np.ndarray,
                              dt: float,
                              att_limit: list,
                              dot_att_limit: list):
-    # [phi, theta, psi] = attitude
     ux = control[0]
     uy = control[1]
     uz = control[2]
     
-    # uf = m * np.sqrt(ux ** 2 + uy ** 2 + (uz + g) ** 2)
     uf = (uz + g) * m / (np.cos(attitude[0]) * np.cos(attitude[1]))
     
     asin_phi_d = np.clip((ux * np.sin(attitude[2]) - uy * np.cos(attitude[2])) * m / uf, -1, 1)
@@ -87,7 +85,7 @@ def uo_2_ref_angle_throttle2(control: np.ndarray,
     dot_phi_d = (phi_d - phi_d_old) / dt
     if dot_att_limit is not None:
         dot_phi_d = np.clip(dot_phi_d, -dot_att_limit[0], dot_att_limit[0])
-    
+        
     # theta_d = np.arctan((ux * np.cos(attitude[2]) + uy * np.sin(attitude[2])) / (uz + g))
     
     asin_theta_d = np.clip((ux * np.cos(attitude[2]) + uy * np.sin(attitude[2])) * m / (uf * np.cos(phi_d)), -1, 1)
@@ -215,11 +213,10 @@ def offset_uav_sequence_with_dead(dt: float, tm: float, t_miemie: float, A: np.n
     
     N1 = int(np.round(t_miemie / dt))
     _off_miemie = np.tile(_off0, (N1, 1))
-    _doff_miemie = np.zeros((N1, 4))
-    _ddoff_miemie = np.zeros((N1, 4))
+    _doff_miemie = np.zeros((N1, 3))
+    _ddoff_miemie = np.zeros((N1, 3))
     
     return np.concatenate((_off_miemie, _off)), np.concatenate((_doff_miemie, _doff)), np.concatenate((_ddoff_miemie, _ddoff))
-
 
 def euler_2_quaternion(phi, theta, psi):
     w = C(phi / 2) * C(theta / 2) * C(psi / 2) + S(phi / 2) * S(theta / 2) * S(psi / 2)
@@ -254,11 +251,11 @@ def uav_odom_2_uav_state(odom: Odometry) -> np.ndarray:
 
 
 def thrust_2_throttle(thrust: float, use_gazebo: bool):
-    """线性模型"""
+    '''线性模型'''
     if use_gazebo:
         k = 0.56 / 1.5 / 9.8
     else:
-        k = 0.31 / 0.715 / 9.8
+        k = 0.31 / 0.727 / 9.8
     _throttle = max(min(k * thrust, 0.9), 0.10)
     '''线性模型'''
     return _throttle

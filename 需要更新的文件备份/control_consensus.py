@@ -7,16 +7,18 @@ from control.observer import robust_differentiator_3rd as rd3
 from control.collector import data_collector
 from control.utils import *
 
+cur_path = os.path.dirname(os.path.abspath(__file__))
+
 
 if __name__ == "__main__":
     rospy.init_node("uav0_control_consensus")
     
     '''load some global configuration parameters'''
-    t_miemie = rospy.get_param('~t_miemie')  # 轨迹跟踪前的初始化等待时间
-    test_group = int(rospy.get_param('~test_group'))  # 使用的测试轨迹编号
-    dt = rospy.get_param('~dt')  # 采样时间
-    time_max = rospy.get_param('~time_max')  # 最大仿真时间
-    TOTAL_SEQ = round((time_max + t_miemie) / dt)  # 参考序列长度
+    t_miemie = rospy.get_param('~t_miemie')             # 轨迹跟踪前的初始化等待时间
+    test_group = int(rospy.get_param('~test_group'))    # 使用的测试轨迹编号
+    dt = rospy.get_param('~dt')                         # 采样时间
+    time_max = rospy.get_param('~time_max')             # 最大仿真时间
+    TOTAL_SEQ = round((time_max + t_miemie) / dt)       # 参考序列长度
     use_gazebo = rospy.get_param('~use_gazebo')
     CONTROLLER = rospy.get_param('~controller')
     use_obs = rospy.get_param('~use_obs')
@@ -35,14 +37,17 @@ if __name__ == "__main__":
     '''define controllers and observers'''
     obs_xy = rd3()
     obs_xy.load_param_from_yaml('~uav0_obs_xy')
+    
     obs_z = rd3()
     obs_z.load_param_from_yaml('~uav0_obs_z')
+    
     controller = fntsmc_consensus(pos_ctrl_param)
+    
     data_record = data_collector(N=TOTAL_SEQ)
     ctrl_param_record = None
     '''define controllers and observers'''
     
-    assert dt == controller.dt == obs_xy.dt == obs_z.dt  # 检查各个模块采样时间是否相同
+    assert dt == controller.dt == obs_xy.dt == obs_z.dt     # 检查各个模块采样时间是否相同
     
     '''define trajectory'''
     if test_group == 0:
@@ -62,7 +67,7 @@ if __name__ == "__main__":
         rp = np.array([6, 6, 8, 10]).astype(float)
         rba = np.array([0, 0, 1, deg2rad(0)]).astype(float)
         rbp = np.array([np.pi / 2, 0, 0, 0]).astype(float)
-        
+
         oa = np.array([0., 0., 0.])
         op = np.array([5, 5, 4])
         oba = np.array([0.5, 0, 0])
@@ -73,7 +78,7 @@ if __name__ == "__main__":
         rp = np.array([10, 10, 8, 10]).astype(float)
         rba = np.array([0, 0, 1, deg2rad(0)]).astype(float)
         rbp = np.array([np.pi / 2, 0, 0, 0]).astype(float)
-        
+
         oa = np.array([0.5, 0.5, 0.])
         op = np.array([5, 5, 4])
         oba = np.array([0., 0, 0])
@@ -84,7 +89,7 @@ if __name__ == "__main__":
         rp = np.array([10, 10, 8, 10]).astype(float)
         rba = np.array([0, 0, 1, deg2rad(0)]).astype(float)
         rbp = np.array([np.pi / 2, 0, 0, 0]).astype(float)
-        
+    
         oa = np.array([0.5, 0.5, 0.])
         op = np.array([5, 5, 4])
         oba = np.array([0., 0, 0])
@@ -113,8 +118,9 @@ if __name__ == "__main__":
         t = rospy.Time.now().to_sec()
         
         '''1. generate reference command and uncertainty'''
-        ref, dot_ref, dot2_ref = REF[uav_ros.n], DOT_REF[uav_ros.n], DOT2_REF[uav_ros.n]
-        nu, dot_nu, dot2_nu = NU[uav_ros.n], DOT_NU[uav_ros.n], DOT2_NU[uav_ros.n]
+        _index = min(uav_ros.n, TOTAL_SEQ - 1)
+        ref, dot_ref, dot2_ref = REF[_index], DOT_REF[_index], DOT2_REF[_index]
+        nu, dot_nu, dot2_nu = NU[_index], DOT_NU[_index], DOT2_NU[_index]
         observe = np.zeros(3)
         
         if uav_ros.global_flag == 1:  # approaching
@@ -147,9 +153,9 @@ if __name__ == "__main__":
             
             '''3. Update the parameters of FNTSMC if RL is used'''
             if CONTROLLER == 'PX4-PID':
-                uav_ros.pose.pose.position.x = ref[0]
-                uav_ros.pose.pose.position.y = ref[1]
-                uav_ros.pose.pose.position.z = ref[2]
+                uav_ros.pose.pose.position.x = ref[0] - uav_ros.offset[0]
+                uav_ros.pose.pose.position.y = ref[1] - uav_ros.offset[1]
+                uav_ros.pose.pose.position.z = ref[2] - uav_ros.offset[2]
                 uav_ros.local_pos_pub.publish(uav_ros.pose)
                 phi_d, theta_d, uf = 0., 0., 0.
             else:
@@ -161,15 +167,17 @@ if __name__ == "__main__":
                     ctrl_param_record = np.atleast_2d(ctrl_param_np) if ctrl_param_record is None else np.vstack((ctrl_param_record, ctrl_param_np))
                 
                 '''3. generate phi_d, theta_d, throttle'''
-                controller.control_update_outer_consensus(b=uav_ros.b,
-                                                          d=uav_ros.d,
+                controller.control_update_outer_consensus(d=uav_ros.d,
+                                                          b=uav_ros.b,
                                                           consensus_e=uav_ros.consensus_e,
                                                           consensus_de=uav_ros.consensus_de,
                                                           Lambda_eta=uav_ros.lambda_eta,
                                                           ref=eta_d + nu,
                                                           d_ref=dot_eta_d + dot_nu,
                                                           e_max=0.5,
-                                                          dot_e_max = 1.0)
+                                                          dot_e_max=1.0,
+                                                          k_com_pos=np.array([0.0, 0.0, 0.0]),
+                                                          k_com_vel=np.array([0.0, 0.0, 0.0]))
                 
                 phi_d, theta_d, dot_phi_d, dot_theta_d, uf = uav_ros.publish_ctrl_cmd(ctrl=controller.control_out_consensus,
                                                                                       psi_d=psi_d,
@@ -197,7 +205,7 @@ if __name__ == "__main__":
             
             if data_record.index == data_record.N:
                 print('Data collection finish. Switching to offboard position...')
-                save_path = os.getcwd() + '/src/uav_consensus_rl_ros/uav0/scripts/datasave/uav0/'
+                save_path = cur_path + '/datasave/uav0/'
                 if not os.path.exists(save_path):
                     os.mkdir(save_path)
                 data_record.package2file(path=save_path)

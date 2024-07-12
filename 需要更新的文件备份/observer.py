@@ -58,7 +58,7 @@ class robust_differentiator_3rd:
 
 		self.threshold = np.array([0.001, 0.001, 0.001])
 	
-	def load_param_from_yaml(self, name: str):
+	def load_param_from_yaml(self, name:str):
 		_p = rospy.get_param(name)
 		self.dim = int(_p['dim'])
 		self.dt = _p['dt']
@@ -68,7 +68,7 @@ class robust_differentiator_3rd:
 		self.n1 = np.zeros(self.dim)
 		self.n2 = np.zeros(self.dim)
 		self.n3 = np.zeros(self.dim)
-		
+
 		if _p['use_freq']:
 			_w = np.array(_p['omega']).astype(float)
 			for i in range(self.dim):
@@ -88,7 +88,7 @@ class robust_differentiator_3rd:
 		self.dz1 = np.zeros(self.dim)
 		self.dz2 = np.zeros(self.dim)
 		self.dz3 = np.zeros(self.dim)
-	
+		
 	def set_init(self, e0: Union[np.ndarray, list], de0: Union[np.ndarray, list], syst_dynamic: Union[np.ndarray, list]):
 		self.z1 = np.array(e0)
 		self.z2 = np.array(de0)

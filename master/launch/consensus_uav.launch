@@ -1,10 +1,11 @@
 <launch>
     <arg name="config" default='vicon' />
+<!--     <arg name="num" type="int" default=1 /> -->
     <param name="config" value="$(arg config)" />
 
     <node pkg="uav0" type="rl_param_opt.py" name="uav0_rl_param_opt" output="screen" />
     <node pkg="uav0" type="control_consensus.py" name="uav0_control_consensus" output="screen">
         <rosparam file="$(find master)/config/global_config_$(arg config).yaml" command="load" />
-        <rosparam file="$(find uav0)/config/uav0_config_$(arg config).yaml" command="load" />
+        <rosparam file="$(find master)/config/uav0_config_$(arg config).yaml" command="load" />
     </node>
 </launch>

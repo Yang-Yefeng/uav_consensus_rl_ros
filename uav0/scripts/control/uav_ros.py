@@ -4,7 +4,7 @@ from mavros_msgs.msg import State, AttitudeTarget
 from mavros_msgs.srv import CommandBool, CommandBoolRequest, SetMode, SetModeRequest
 from geometry_msgs.msg import PoseStamped
 from sensor_msgs.msg import BatteryState
-from std_msgs.msg import Float32, Float32MultiArray
+from std_msgs.msg import Float32MultiArray
 
 from control.utils import *
 
@@ -16,7 +16,10 @@ class UAV_ROS:
                  time_max: float = 30.,
                  pos0: np.ndarray = np.zeros(3),
                  offset: np.ndarray = np.zeros(3),
-                 group=''):
+                 group='',
+                 use_ros_param: bool = False,
+                 name: str = ''
+                 ):
         self.m = m  # 无人机质量
         self.g = 9.8
         self.kt = 1e-3

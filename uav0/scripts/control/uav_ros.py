@@ -16,26 +16,34 @@ class UAV_ROS:
                  time_max: float = 30.,
                  pos0: np.ndarray = np.zeros(3),
                  offset: np.ndarray = np.zeros(3),
-                 group='',
+                 group='/uav0',
                  use_ros_param: bool = False,
-                 name: str = ''
-                 ):
-        self.m = m  # 无人机质量
+                 name: str = '~uav0_parameters'):
         self.g = 9.8
         self.kt = 1e-3
-        
-        self.pos0 = pos0
-        self.offset = offset
+        if use_ros_param:
+            _p = rospy.get_param(name)
+            self.m = _p['m']
+            self.pos0 = np.array(_p['pos0'])
+            self.offset = np.array(_p['offset'])
+            self.dt = _p['dt']
+            self.time_max = _p['time_max']
+            self.group = _p['group']
+        else:
+            self.m = m  # 无人机质量
+            self.pos0 = pos0
+            self.offset = offset
+            self.dt = dt
+            self.time_max = time_max  # 每回合最大时间
+            self.group = group
         
         self.pos = np.zeros(3)
         self.vel = np.zeros(3)
         self.att = np.zeros(3)
         self.pqr = np.zeros(3)
         
-        self.dt = dt
         self.n = 0  # 记录走过的拍数
         self.time = 0.  # 当前时间
-        self.time_max = time_max  # 每回合最大时间
         
         '''control'''
         self.throttle = self.m * self.g  # 油门
@@ -56,25 +64,25 @@ class UAV_ROS:
         # 2: control by FNTSMC ([phi_d theta_d psi_d throttle])
         # 3: finish and switch OFFBOARD to position
         
-        self.state_sub = rospy.Subscriber(group + "/mavros/state", State, callback=self.state_cb)
-        self.ctrl_param_sub = rospy.Subscriber(group + "/ctrl_param", Float32MultiArray, callback=self.ctrl_param_cb)
+        self.state_sub = rospy.Subscriber(self.group + "/mavros/state", State, callback=self.state_cb)
+        self.ctrl_param_sub = rospy.Subscriber(self.group + "/ctrl_param", Float32MultiArray, callback=self.ctrl_param_cb)
         
-        self.uav_vel_sub = rospy.Subscriber(group + "/mavros/local_position/odom", Odometry, callback=self.uav_odom_cb)
-        self.uav_battery_sub = rospy.Subscriber(group + "/mavros/battery", BatteryState, callback=self.uav_battery_cb)
+        self.uav_vel_sub = rospy.Subscriber(self.group + "/mavros/local_position/odom", Odometry, callback=self.uav_odom_cb)
+        self.uav_battery_sub = rospy.Subscriber(self.group + "/mavros/battery", BatteryState, callback=self.uav_battery_cb)
         '''topic subscribe'''
         
-        self.local_pos_pub = rospy.Publisher(group + "/mavros/setpoint_position/local", PoseStamped, queue_size=10)
-        self.nn_input_state_pub = rospy.Publisher(group + "/nn_input_rl", Float32MultiArray, queue_size=10)
-        self.uav_att_throttle_pub = rospy.Publisher(group + "/mavros/setpoint_raw/attitude", AttitudeTarget, queue_size=10)
+        self.local_pos_pub = rospy.Publisher(self.group + "/mavros/setpoint_position/local", PoseStamped, queue_size=10)
+        self.nn_input_state_pub = rospy.Publisher(self.group + "/nn_input_rl", Float32MultiArray, queue_size=10)
+        self.uav_att_throttle_pub = rospy.Publisher(self.group + "/mavros/setpoint_raw/attitude", AttitudeTarget, queue_size=10)
         '''Publish 位置指令给 UAV'''
         
         '''arming service'''
-        rospy.wait_for_service(group + "/mavros/cmd/arming")  # 等待解锁电机的 service 建立
-        self.arming_client = rospy.ServiceProxy(group + "/mavros/cmd/arming", CommandBool)
+        rospy.wait_for_service(self.group + "/mavros/cmd/arming")  # 等待解锁电机的 service 建立
+        self.arming_client = rospy.ServiceProxy(self.group + "/mavros/cmd/arming", CommandBool)
         
         '''working mode service'''
-        rospy.wait_for_service(group + "/mavros/set_mode")  # 等待设置 UAV 工作模式的 service 建立
-        self.set_mode_client = rospy.ServiceProxy(group + "/mavros/set_mode", SetMode)
+        rospy.wait_for_service(self.group + "/mavros/set_mode")  # 等待设置 UAV 工作模式的 service 建立
+        self.set_mode_client = rospy.ServiceProxy(self.group + "/mavros/set_mode", SetMode)
         
         self.rate = rospy.Rate(1 / self.dt)
         self.offb_set_mode = SetModeRequest()  # 先设置工作模式为 offboard

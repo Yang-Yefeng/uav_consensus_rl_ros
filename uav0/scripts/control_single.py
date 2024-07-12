@@ -1,8 +1,6 @@
 #! /usr/bin/python3
 import os, rospy
 
-import numpy as np
-
 from control.uav_ros import UAV_ROS
 from control.FNTSMC import fntsmc_param, fntsmc
 from control.observer import robust_differentiator_3rd as rd3
@@ -11,66 +9,19 @@ from control.utils import *
 
 cur_path = os.path.dirname(os.path.abspath(__file__))
 
-DT = 0.01
-
-# 单飞机定点, 砝码风扇
-pos_ctrl_param = fntsmc_param(
-    k1=np.array([0.3, 0.3, 0.3]).astype(float),
-    k2=np.array([0.5, 0.5, 0.5]).astype(float),
-    k3=np.array([1.5, 1.5, 1.5]).astype(float),  # 补偿观测器的，小点就行
-    k4=np.array([6, 6, 6]).astype(float),
-    alpha1=np.array([1.01, 1.01, 1.01]).astype(float),
-    alpha2=np.array([1.01, 1.01, 1.01]).astype(float),
-    k_yyf_i=np.array([0.00, 0.00, 0.00]),
-    k_yyf_d=np.array([0., 0., 0.]),
-    k_yyf_p=np.array([0., 0., 0.0]),
-    k_com_pos=np.array([0.05, 0.05, -0.08]),
-    k_com_vel=np.array([0.05, 0.05, 0.1]),
-    k_com_acc=np.array([0.0, 0.0, 0.0]),
-    dim=3,
-    dt=DT
-)
-
-# # 单飞机圆, 不加砝码
-# pos_ctrl_param = fntsmc_param(
-#     k1=np.array([0.3, 0.3, 0.3]).astype(float),
-#     k2=np.array([0.5, 0.5, 0.5]).astype(float),
-#     k3=np.array([0.5, 0.5, 0.5]).astype(float),  # 补偿观测器的，小点就行
-#     k4=np.array([3, 3, 3]).astype(float),
-#     alpha1=np.array([1.01, 1.01, 1.01]).astype(float),
-#     alpha2=np.array([1.01, 1.01, 1.01]).astype(float),
-#     k_yyf_i=np.array([0.002, 0.002, 0.001]),
-#     k_yyf_d=np.array([0.15, 0.15, 0.10]),
-#     k_yyf_p=np.array([0.1, 0.1, 0.06]),
-#     k_com_pos=np.array([0.05, 0.05, -0.1]),
-#     k_com_vel=np.array([0.05, 0.05, -0.1]),
-#     k_com_acc=np.array([0.0, 0.0, 0.0]),
-#     dim=3,
-#     dt=DT
-# )
-
-# # 单飞机圆, 加 200g 砝码
-# pos_ctrl_param = fntsmc_param(
-#     k1=np.array([0.3, 0.3, 0.3]).astype(float),
-#     k2=np.array([0.5, 0.5, 0.5]).astype(float),
-#     k3=np.array([0.5, 0.5, 1.5]).astype(float),  # 补偿观测器的，小点就行
-#     k4=np.array([3, 3, 8]).astype(float),
-#     alpha1=np.array([1.01, 1.01, 1.01]).astype(float),
-#     alpha2=np.array([1.01, 1.01, 1.01]).astype(float),
-#     k_yyf_i=np.array([0.002, 0.002, 0.001]),
-#     k_yyf_d=np.array([0.15, 0.15, 0.2]),
-#     k_yyf_p=np.array([0.1, 0.1, 0.1]),
-#     k_com_pos=np.array([0.05, 0.1, -0.1]),
-#     k_com_vel=np.array([0.05, 0.1, 0.0]),
-#     k_com_acc=np.array([0.1, 0.1, -0.2]),
-#     dim=3,
-#     dt=DT
-# )
 
 if __name__ == "__main__":
     rospy.init_node("uav0_control_single")
     
-    uav_ros = UAV_ROS(m=0.715, dt=DT, time_max=20, pos0=np.array([2.45, -1, 1.0]), offset=np.array([0., 0., 0.]), group='/uav0')  # '/uav0'
+    t_miemie = rospy.get_param('~t_miemie')  # 轨迹跟踪前的初始化等待时间
+    dt = rospy.get_param('~dt')  # 采样时间
+    time_max = rospy.get_param('~time_max')  # 最大仿真时间
+    TOTAL_SEQ = round((time_max + t_miemie) / dt)  # 参考序列长度
+    use_gazebo = rospy.get_param('~use_gazebo')
+    CONTROLLER = rospy.get_param('~controller')
+    use_obs = rospy.get_param('~use_obs')
+    
+    uav_ros = UAV_ROS(use_ros_param=True, name='~uav0_parameters')
     uav_ros.connect()  # 连接
     uav_ros.offboard_arm()  # OFFBOARD 模式 + 电机解锁
     
@@ -78,40 +29,36 @@ if __name__ == "__main__":
     uav_ros.global_flag = 1
     
     '''define controllers and observers'''
-    obs_xy = rd3(use_freq=True,
-                 omega=[[0.9, 0.9, 0.9], [0.95, 0.95, 0.95]],  # [0.8, 0.78, 0.75]
-                 dim=2, dt=DT)
-    obs_z = rd3(use_freq=True,
-                omega=[[1.0, 1.0, 1.0]],
-                dim=1, dt=DT)
+    obs_xy = rd3()
+    obs_xy.load_param_from_yaml('~uav0_obs_xy')
+    obs_z = rd3()
+    obs_z.load_param_from_yaml('~uav0_obs_z')
+    
+    pos_ctrl_param = fntsmc_param()
+    pos_ctrl_param.load_param_from_yaml('~uav0_fntsmc_parameters')
     controller = fntsmc(pos_ctrl_param)
-    t_MIEMIE = 5
-    data_record = data_collector(N=round((uav_ros.time_max + t_MIEMIE) / DT))
+
+    data_record = data_collector(N=TOTAL_SEQ)
     ctrl_param_record = None
     '''define controllers and observers'''
     
-    ra = np.array([0., 0., 0., deg2rad(0)])
-    rp = np.array([10, 10, 10, 10])  # xd yd zd psid 周期
-    rba = np.array([0, 0, 1.3, deg2rad(0)])  # xd yd zd psid 幅值偏移
-    rbp = np.array([np.pi / 2, 0, 0, 0])  # xd yd zd psid 相位偏移
+    assert dt == controller.dt == obs_xy.dt == obs_z.dt  # 检查各个模块采样时间是否相同
+    assert time_max == uav_ros.time_max
     
-    # ra = np.array([1.3, 1.3, 0.4, deg2rad(0)])
-    # rp = np.array([6, 6, 6, 10])  # xd yd zd psid 周期
-    # rba = np.array([0.0, 0.0, 1.0, deg2rad(0)])  # xd yd zd psid 幅值偏移
+    # ra = np.array([0., 0., 0., deg2rad(0)])
+    # rp = np.array([10, 10, 10, 10])  # xd yd zd psid 周期
+    # rba = np.array([0, 0, 2, deg2rad(0)])  # xd yd zd psid 幅值偏移
     # rbp = np.array([np.pi / 2, 0, 0, 0])  # xd yd zd psid 相位偏移
     
-    USE_GAZEBO = False  # 使用gazebo时，无人机质量和悬停油门可能会不同
-    USE_OBS = True
-    
-    CONTROLLER = 'FNTSMC'
-    # CONTROLLER = 'RL'
-    # CONTROLLER = 'PX4-PID'
-    # CONTROLLER = 'MPC'
+    ra = np.array([1.3, 1.3, 0.4, deg2rad(0)])
+    rp = np.array([6, 6, 6, 10])  # xd yd zd psid 周期
+    rba = np.array([0.0, 0.0, 1.0, deg2rad(0)])  # xd yd zd psid 幅值偏移
+    rbp = np.array([np.pi / 2, 0, 0, 0])  # xd yd zd psid 相位偏移
     
     e = np.zeros(3).astype(float)
     de = np.zeros(3).astype(float)
     
-    ref_all, dot_ref_all, dot2_ref_all = ref_uav_sequence_with_dead(DT, uav_ros.time_max, t_MIEMIE, ra, rp, rba, rbp)
+    ref_all, dot_ref_all, dot2_ref_all = ref_uav_sequence_with_dead(dt, uav_ros.time_max, t_miemie, ra, rp, rba, rbp)
     
     t0 = rospy.Time.now().to_sec()
     while not rospy.is_shutdown():
@@ -133,7 +80,7 @@ if __name__ == "__main__":
             de = uav_ros.dot_eta() - dot_eta_d
             psi_d = ref[3]
             
-            if USE_OBS:
+            if use_obs:
                 syst_dynamic = -uav_ros.kt / uav_ros.m * uav_ros.dot_eta() + uav_ros.A()
                 observe_xy = obs_xy.observe(e=uav_ros.eta()[0:2], syst_dynamic=syst_dynamic[0:2])
                 observe_z = obs_z.observe(e=uav_ros.eta()[2], syst_dynamic=syst_dynamic[2])
@@ -151,7 +98,7 @@ if __name__ == "__main__":
             else:
                 if CONTROLLER == 'RL':
                     ctrl_param_np = np.array(uav_ros.ctrl_param.data).astype(float)
-                    if t_now > t_MIEMIE:  # 前几秒过渡一下
+                    if t_now > t_miemie:  # 前几秒过渡一下
                         controller.get_param_from_actor(ctrl_param_np, update_z=False)
                     # controller.print_param()
                     ctrl_param_record = np.atleast_2d(ctrl_param_np) if ctrl_param_record is None else np.vstack((ctrl_param_record, ctrl_param_np))
@@ -169,7 +116,7 @@ if __name__ == "__main__":
                                                 obs=observe if t_now > 0. else np.zeros(3),
                                                 e_max=0.5,
                                                 dot_e_max=1.5)
-                phi_d, theta_d, uf = uav_ros.publish_ctrl_cmd(controller.control_out, psi_d, USE_GAZEBO)
+                phi_d, theta_d, uf = uav_ros.publish_ctrl_cmd(controller.control_out, psi_d, use_gazebo)
             
             '''5. get new uav states from Gazebo'''
             uav_ros.rk44(action=[phi_d, theta_d, uf], uav_state=uav_odom_2_uav_state(uav_ros.uav_odom))

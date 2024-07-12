@@ -215,8 +215,8 @@ def offset_uav_sequence_with_dead(dt: float, tm: float, t_miemie: float, A: np.n
     
     N1 = int(np.round(t_miemie / dt))
     _off_miemie = np.tile(_off0, (N1, 1))
-    _doff_miemie = np.zeros((N1, 4))
-    _ddoff_miemie = np.zeros((N1, 4))
+    _doff_miemie = np.zeros((N1, 3))
+    _ddoff_miemie = np.zeros((N1, 3))
     
     return np.concatenate((_off_miemie, _off)), np.concatenate((_doff_miemie, _doff)), np.concatenate((_ddoff_miemie, _ddoff))
 

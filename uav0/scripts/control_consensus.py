@@ -7,6 +7,7 @@ from control.observer import robust_differentiator_3rd as rd3
 from control.collector import data_collector
 from control.utils import *
 
+cur_path = os.path.dirname(os.path.abspath(__file__))
 
 if __name__ == "__main__":
     rospy.init_node("uav0_control_consensus")
@@ -113,8 +114,9 @@ if __name__ == "__main__":
         t = rospy.Time.now().to_sec()
         
         '''1. generate reference command and uncertainty'''
-        ref, dot_ref, dot2_ref = REF[uav_ros.n], DOT_REF[uav_ros.n], DOT2_REF[uav_ros.n]
-        nu, dot_nu, dot2_nu = NU[uav_ros.n], DOT_NU[uav_ros.n], DOT2_NU[uav_ros.n]
+        _index = min(uav_ros.n, TOTAL_SEQ - 1)
+        ref, dot_ref, dot2_ref = REF[_index], DOT_REF[_index], DOT2_REF[_index]
+        nu, dot_nu, dot2_nu = NU[_index], DOT_NU[_index], DOT2_NU[_index]
         observe = np.zeros(3)
         
         if uav_ros.global_flag == 1:  # approaching
@@ -197,7 +199,7 @@ if __name__ == "__main__":
             
             if data_record.index == data_record.N:
                 print('Data collection finish. Switching to offboard position...')
-                save_path = os.getcwd() + '/src/uav_consensus_rl_ros/uav0/scripts/datasave/uav0/'
+                save_path = cur_path + '/datasave/uav0/'
                 if not os.path.exists(save_path):
                     os.mkdir(save_path)
                 data_record.package2file(path=save_path)

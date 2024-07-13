@@ -207,7 +207,7 @@ def offset_uav_sequence_with_dead(dt: float, tm: float, t_miemie: float, A: np.n
     _doff = np.zeros((N, 3))
     _ddoff = np.zeros((N, 3))
     w = 2 * np.pi / T
-    _off0 = A * np.sin(ba) + bp
+    _off0 = A * np.sin(bp) + ba
     for i in range(N):
         _off[i, :] = A * np.sin(w * i * dt + bp) + ba
         _doff[i, :] = A * w * np.cos(w * i * dt + bp)

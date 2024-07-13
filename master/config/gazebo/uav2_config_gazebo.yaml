@@ -1,0 +1,38 @@
+uav2_parameters:
+    uav_existance: [1, 1, 0, 0]
+    adj: [1, 0, 0, 0]
+    b: 0
+    d: 1
+    m: 1.5
+    pos0: [0.0, 0.0, 1.0]
+    offset: [-1.0, 0.0, 0.]
+    dt: 0.01
+    group: '/uav2'
+
+uav2_fntsmc_parameters:
+    k1: [0.3, 0.3, 0.3]
+    k2: [0.5, 0.5, 0.5]
+    k3: [0.5, 0.5, 0.5]
+    k4: [3, 3, 3]
+    alpha1: [1.01, 1.01, 1.01]
+    alpha2: [1.01, 1.01, 1.01]
+    k_com_pos: [0.05, 0.1, -0.1]
+    k_com_vel: [0.05, 0.1, 0.0]
+    k_com_acc: [0.1, 0.1, -0.2]
+    k_yyf_p: [0.1, 0.1, 0.1]
+    k_yyf_i: [0.002, 0.002, 0.001]
+    k_yyf_d: [0.15, 0.15, 0.2]
+    dim: 3
+    dt: 0.01
+
+uav2_obs_xy:
+    use_freq: True
+    omega: [[1.0, 1.1, 1.2], [1.0, 1.1, 1.2]]
+    dim: 2
+    dt: 0.01
+
+uav2_obs_z:
+    use_freq: true
+    omega: [[1.2, 1.2, 1.2]]
+    dim: 1
+    dt: 0.01

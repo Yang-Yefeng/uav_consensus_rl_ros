@@ -5,7 +5,7 @@
 
     <node pkg="uav0" type="rl_param_opt.py" name="uav0_rl_param_opt" output="screen" />
     <node pkg="uav0" type="control_consensus.py" name="uav0_control_consensus" output="screen">
-        <rosparam file="$(find master)/config/global_config_$(arg config).yaml" command="load" />
-        <rosparam file="$(find master)/config/uav0_config_$(arg config).yaml" command="load" />
+        <rosparam file="$(find master)/config/$(arg config)/global_config_$(arg config).yaml" command="load" />
+        <rosparam file="$(find master)/config/$(arg config)/uav0_config_$(arg config).yaml" command="load" />
     </node>
 </launch>

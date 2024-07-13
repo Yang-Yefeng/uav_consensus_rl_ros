@@ -55,7 +55,7 @@ if __name__ == "__main__":
         
         oa = np.array([0., 0., 0.]).astype(float)
         op = np.array([5, 5, 4]).astype(float)
-        oba = np.array([0, 1.0, 0]).astype(float)
+        oba = np.array([0, 1.0, 0.]).astype(float)
         obp = np.array([0., 0., 0.]).astype(float)
     elif test_group == 1:
         # 第二组 整体平移，小圈不动

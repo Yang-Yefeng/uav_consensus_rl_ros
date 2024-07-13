@@ -1,13 +1,6 @@
-# waiting time
 t_miemie: 5
-
-# group number
 test_group: 0
-
-# sampling time
 dt: 0.01
-
-# max time
 time_max: 30.0
 
 use_gazebo: true

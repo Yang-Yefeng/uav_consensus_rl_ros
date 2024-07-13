@@ -21,12 +21,13 @@ if __name__ == "__main__":
     use_gazebo = rospy.get_param('~use_gazebo')
     CONTROLLER = rospy.get_param('~controller')
     use_obs = rospy.get_param('~use_obs')
+    uav_existance = rospy.get_param('~uav_existance')
     '''load some global configuration parameters'''
     
     pos_ctrl_param = fntsmc_param()
     pos_ctrl_param.load_param_from_yaml('~uav1_fntsmc_parameters')
     
-    uav_ros = UAV_ROS_Consensus(use_ros_param=True, name='~uav1_parameters')
+    uav_ros = UAV_ROS_Consensus(uav_existance=uav_existance, use_ros_param=True, name='~uav1_parameters')
     uav_ros.connect()
     uav_ros.offboard_arm()
     

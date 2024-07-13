@@ -1,12 +1,13 @@
 t_miemie: 5
-test_group: 0
 dt: 0.01
 time_max: 30.0
-
 use_gazebo: true
 use_obs: true
+uav_existance: [1, 1, 1, 1]
 
 controller: 'FNTSMC'
 # CONTROLLER = 'RL'
 # CONTROLLER = 'PX4-PID'
 # CONTROLLER = 'MPC'
+
+test_group: 0

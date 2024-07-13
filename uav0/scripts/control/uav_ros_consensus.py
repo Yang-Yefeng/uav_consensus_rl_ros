@@ -28,10 +28,11 @@ class UAV_ROS_Consensus:
                  name: str = ''):
         self.g = 9.8
         self.kt = 1e-3
-        
+        if uav_existance is None:
+            uav_existance = [1, 0, 0, 0]
+        self.uav_existance = uav_existance
         if use_ros_param:
             _p = rospy.get_param(name)
-            self.uav_existance = _p['uav_existance']
             self.adj = _p['adj']
             self.b = _p['b']
             self.d = _p['d']
@@ -41,16 +42,12 @@ class UAV_ROS_Consensus:
             self.dt = _p['dt']
             self.group = _p['group']
         else:
-            if uav_existance is None:
-                uav_existance = [1, 0, 0, 0]
             if adj is None:
                 adj = [0, 0, 0, 0]
-            self.uav_existance = uav_existance
             self.adj = adj
             self.d = d
             self.b = b
             self.m = m
-            
             self.pos0 = pos0
             self.offset = offset
             self.group = group

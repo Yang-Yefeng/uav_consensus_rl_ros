@@ -1,5 +1,4 @@
 uav3_parameters:
-    uav_existance: [1, 1, 1, 1]
     adj: [1, 0, 0, 0]
     b: 0
     d: 1

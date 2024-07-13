@@ -1,16 +1,9 @@
-# waiting time
 t_miemie: 5.0
-
-# group number
 test_group: 0
-
-# sampling time
 dt: 0.01
-
-# max time
 time_max: 30.0
-
 use_gazebo: false
 use_obs: true
 
 controller: 'FNTSMC'
+uav_existance: [1, 1, 1, 1]

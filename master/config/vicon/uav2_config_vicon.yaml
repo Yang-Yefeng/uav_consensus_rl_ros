@@ -1,14 +1,14 @@
-uav1_parameters:
+uav2_parameters:
     adj: [1, 0, 0, 0]
     b: 0
     d: 1
-    m: 1.5
-    pos0: [0.5, 0.5, 1.0]
-    offset: [0.0, 0.0, 0.]
+    m: 0.722
+    pos0: [0.0, 0., 1.0]
+    offset: [0., 0., 0.]
     dt: 0.01
-    group: '/uav1'
+    group: '/uav2'
 
-uav1_fntsmc_parameters:
+uav2_fntsmc_parameters:
     # 单机飞定点 加200g砝码，风扇
     k1: [0.3, 0.3, 0.3]
     k2: [0.5, 0.5, 0.5]
@@ -51,13 +51,13 @@ uav1_fntsmc_parameters:
 #    k_com_vel: [0.05, 0.1, 0.0]
 #    k_com_acc: [0.1, 0.1, -0.2]
 
-uav1_obs_xy:
+uav2_obs_xy:
     use_freq: True
     omega: [[1.0, 1.1, 1.2], [1.0, 1.1, 1.2]]
     dim: 2
     dt: 0.01
 
-uav1_obs_z:
+uav2_obs_z:
     use_freq: True
     omega: [[1.2, 1.2, 1.2]]
     dim: 1

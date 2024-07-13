@@ -47,61 +47,70 @@ if __name__ == "__main__":
     assert dt == controller.dt == obs_xy.dt == obs_z.dt  # 检查各个模块采样时间是否相同
     
     '''define trajectory'''
-    if test_group == 0:
-        # 第一组 大圈逆时针，小圈不动 (轨迹跟踪)
-        ra = np.array([1.0, 1.0, 0.3, deg2rad(0)]).astype(float)
-        rp = np.array([6, 6, 8, 10]).astype(float)
-        rba = np.array([0, 0, 1, deg2rad(0)]).astype(float)
-        rbp = np.array([np.pi / 2, 0, 0, 0]).astype(float)
-        
-        oa = np.array([0., 0., 0.]).astype(float)
-        op = np.array([5, 5, 4]).astype(float)
-        oba = np.array([0, 1.0, 0.]).astype(float)
-        obp = np.array([0., 0., 0.]).astype(float)
-    elif test_group == 1:
-        # 第二组 整体平移，小圈不动
-        ra = np.array([0, 0, 0, deg2rad(0)]).astype(float)
-        rp = np.array([6, 6, 8, 10]).astype(float)
-        rba = np.array([0, 0, 1, deg2rad(0)]).astype(float)
-        rbp = np.array([np.pi / 2, 0, 0, 0]).astype(float)
-        
-        oa = np.array([0., 0., 0.])
-        op = np.array([5, 5, 4])
-        oba = np.array([0, 0.5, 0])
-        obp = np.array([0., 0., 0.])
-    elif test_group == 2:
-        # 第三组 大圈逆时针，小圈逆时针
-        ra = np.array([1, 1, 0.3, deg2rad(0)]).astype(float)
-        rp = np.array([10, 10, 8, 10]).astype(float)
-        rba = np.array([0, 0, 1, deg2rad(0)]).astype(float)
-        rbp = np.array([np.pi / 2, 0, 0, 0]).astype(float)
-        
-        oa = np.array([0.5, 0.5, 0.])
-        op = np.array([5, 5, 4])
-        oba = np.array([0., 0, 0])
-        obp = np.array([np.pi / 2, 0., 0.])
-    elif test_group == 3:
-        # 第四组 大圈八字，小圈不动
-        ra = np.array([1, 1, 0.3, deg2rad(0)]).astype(float)
-        rp = np.array([10, 10, 8, 10]).astype(float)
-        rba = np.array([0, 0, 1, deg2rad(0)]).astype(float)
-        rbp = np.array([np.pi / 2, 0, 0, 0]).astype(float)
-        
-        oa = np.array([0.5, 0.5, 0.])
-        op = np.array([5, 5, 4])
-        oba = np.array([0., 0, 0])
-        obp = np.array([np.pi, np.pi / 2, 0.])
-    else:
-        # 不动
-        ra = np.zeros(4)
-        rp = np.zeros(4)
-        rba = np.zeros(4)
-        rbp = np.zeros(4)
-        
-        oa = np.zeros(4)
-        op = np.zeros(4)
-        oba = np.zeros(4)
-        obp = np.zeros(4)
+    # if test_group == 0:
+    #     # 第一组 大圈逆时针，小圈不动 (轨迹跟踪)
+    #     ra = np.array([1.0, 1.0, 0.3, deg2rad(0)]).astype(float)
+    #     rp = np.array([6, 6, 8, 10]).astype(float)
+    #     rba = np.array([0, 0, 1, deg2rad(0)]).astype(float)
+    #     rbp = np.array([np.pi / 2, 0, 0, 0]).astype(float)
+    #
+    #     oa = np.array([0., 0., 0.]).astype(float)
+    #     op = np.array([5, 5, 4]).astype(float)
+    #     oba = np.array([0, 1.0, 0.]).astype(float)
+    #     obp = np.array([0., 0., 0.]).astype(float)
+    # elif test_group == 1:
+    #     # 第二组 整体平移，小圈不动
+    #     ra = np.array([0, 0, 0, deg2rad(0)]).astype(float)
+    #     rp = np.array([6, 6, 8, 10]).astype(float)
+    #     rba = np.array([0, 0, 1, deg2rad(0)]).astype(float)
+    #     rbp = np.array([np.pi / 2, 0, 0, 0]).astype(float)
+    #
+    #     oa = np.array([0., 0., 0.])
+    #     op = np.array([5, 5, 4])
+    #     oba = np.array([0, 0.5, 0])
+    #     obp = np.array([0., 0., 0.])
+    # elif test_group == 2:
+    #     # 第三组 大圈逆时针，小圈逆时针
+    #     ra = np.array([1, 1, 0.3, deg2rad(0)]).astype(float)
+    #     rp = np.array([10, 10, 8, 10]).astype(float)
+    #     rba = np.array([0, 0, 1, deg2rad(0)]).astype(float)
+    #     rbp = np.array([np.pi / 2, 0, 0, 0]).astype(float)
+    #
+    #     oa = np.array([0.5, 0.5, 0.])
+    #     op = np.array([5, 5, 4])
+    #     oba = np.array([0., 0, 0])
+    #     obp = np.array([np.pi / 2, 0., 0.])
+    # elif test_group == 3:
+    #     # 第四组 大圈八字，小圈不动
+    #     ra = np.array([1, 1, 0.3, deg2rad(0)]).astype(float)
+    #     rp = np.array([10, 10, 8, 10]).astype(float)
+    #     rba = np.array([0, 0, 1, deg2rad(0)]).astype(float)
+    #     rbp = np.array([np.pi / 2, 0, 0, 0]).astype(float)
+    #
+    #     oa = np.array([0.5, 0.5, 0.])
+    #     op = np.array([5, 5, 4])
+    #     oba = np.array([0., 0, 0])
+    #     obp = np.array([np.pi, np.pi / 2, 0.])
+    # else:
+    #     # 不动
+    #     ra = np.zeros(4)
+    #     rp = np.zeros(4)
+    #     rba = np.zeros(4)
+    #     rbp = np.zeros(4)
+    #
+    #     oa = np.zeros(4)
+    #     op = np.zeros(4)
+    #     oba = np.zeros(4)
+    #     obp = np.zeros(4)
+    ra = np.array(rospy.get_param('~ra')).astype(float)
+    rp = np.array(rospy.get_param('~rp')).astype(float)
+    rba = np.array(rospy.get_param('~rba')).astype(float)
+    rbp = np.array(rospy.get_param('~rbp')).astype(float)
+    
+    oa = np.array(rospy.get_param('~oa_1')).astype(float)
+    op = np.array(rospy.get_param('~op_1')).astype(float)
+    oba = np.array(rospy.get_param('~oba_1')).astype(float)
+    obp = np.array(rospy.get_param('~obp_1')).astype(float)
     '''define trajectory'''
     
     if test_group == 3:

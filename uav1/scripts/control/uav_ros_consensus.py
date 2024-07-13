@@ -87,9 +87,9 @@ class UAV_ROS_Consensus:
         
         '''OK 标志位'''
         self.uav_msg = [uav_msg() for _ in range(4)]
-        if self.uav_existance[1] == 0:  # 如果 1 号无人机本身不存在，就默认它准备好了
-            self.uav_msg[1].are_you_ok.data = True
-            self.uav_msg[1].finish.data = True
+        if self.uav_existance[0] == 0:  # 如果 0 号无人机本身不存在，就默认它准备好了
+            self.uav_msg[0].are_you_ok.data = True
+            self.uav_msg[0].finish.data = True
         if self.uav_existance[2] == 0:  # 如果 2 号无人机本身不存在，就默认它准备好了
             self.uav_msg[2].are_you_ok.data = True
             self.uav_msg[2].finish.data = True
@@ -98,8 +98,8 @@ class UAV_ROS_Consensus:
             self.uav_msg[3].finish.data = True
         
         '''OK 标志位 pub 或者 sub'''
-        self.uav_msg_0_pub = rospy.Publisher(self.group + "/uav_msg", uav_msg, queue_size=10)
-        self.uav_msg_1_sub = rospy.Subscriber("/uav1/uav_msg", uav_msg, callback=self.uav_msg_1_cb)
+        self.uav_msg_0_sub = rospy.Subscriber("/uav0/uav_msg", uav_msg, callback=self.uav_msg_0_cb)
+        self.uav_msg_1_pub = rospy.Publisher(self.group + "/uav_msg", uav_msg, queue_size=10)
         self.uav_msg_2_sub = rospy.Subscriber("/uav2/uav_msg", uav_msg, callback=self.uav_msg_2_cb)
         self.uav_msg_3_sub = rospy.Subscriber("/uav3/uav_msg", uav_msg, callback=self.uav_msg_3_cb)
         '''OK 标志位 pub 或者 sub'''
@@ -178,12 +178,12 @@ class UAV_ROS_Consensus:
     def ctrl_param_cb(self, msg: Float32MultiArray):
         self.ctrl_param = msg
     
-    def uav_msg_1_cb(self, msg: uav_msg):
-        self.uav_msg[1] = msg
+    def uav_msg_0_cb(self, msg: uav_msg):
+        self.uav_msg[0] = msg
     
     def uav_msg_2_cb(self, msg: uav_msg):
         self.uav_msg[2] = msg
-    
+        
     def uav_msg_3_cb(self, msg: uav_msg):
         self.uav_msg[3] = msg
     
@@ -199,9 +199,9 @@ class UAV_ROS_Consensus:
         
         e1 = (self.d + self.b) * (self.eta() - nu) - self.b * eta_d
         
-        l1 = self.adj[0] * (self.eta() - nu)  # uav0
-        l2 = self.adj[1] * (np.array(self.uav_msg[1].eta) - np.array(self.uav_msg[1].nu)) \
-            if self.uav_existance[1] == 1 else np.zeros(3)
+        l1 = self.adj[0] * (np.array(self.uav_msg[0].eta) - np.array(self.uav_msg[0].nu)) \
+            if self.uav_existance[0] == 1 else np.zeros(3)
+        l2 = self.adj[1] * (self.eta() - nu)  # uav1
         l3 = self.adj[2] * (np.array(self.uav_msg[2].eta) - np.array(self.uav_msg[2].nu)) \
             if self.uav_existance[2] == 1 else np.zeros(3)
         l4 = self.adj[3] * (np.array(self.uav_msg[3].eta) - np.array(self.uav_msg[3].nu)) \
@@ -220,9 +220,9 @@ class UAV_ROS_Consensus:
         # self.consensus_de = dl1 + dl2 + dl3 + dl4 + self.b * (self.dot_eta() - dot_eta_d - dot_nu)
         
         dot_e1 = (self.d + self.b) * (self.dot_eta() - dot_nu) - self.b * dot_eta_d
-        dl1 = self.adj[0] * (self.dot_eta() - dot_nu)
-        dl2 = self.adj[1] * (np.array(self.uav_msg[1].dot_eta) - np.array(self.uav_msg[1].dot_nu)) \
-            if self.uav_existance[1] == 1 else np.zeros(3)
+        dl1 = self.adj[0] * (np.array(self.uav_msg[0].dot_eta) - np.array(self.uav_msg[0].dot_nu)) \
+            if self.uav_existance[0] == 1 else np.zeros(3)
+        dl2 = self.adj[1] * (self.dot_eta() - dot_nu)
         dl3 = self.adj[2] * (np.array(self.uav_msg[2].dot_eta) - np.array(self.uav_msg[2].dot_nu)) \
             if self.uav_existance[2] == 1 else np.zeros(3)
         dl4 = self.adj[3] * (np.array(self.uav_msg[3].dot_eta) - np.array(self.uav_msg[3].dot_nu)) \
@@ -233,9 +233,9 @@ class UAV_ROS_Consensus:
     
     def cal_Lambda_eta(self, dot2_eat_d: np.ndarray, dot2_nu: np.ndarray, obs: np.ndarray):
         lambda_eta = -self.b * dot2_eat_d + (self.d + self.b) * (-self.kt / self.m * self.dot_eta() + obs - dot2_nu)
-        le1 = self.adj[0] * (np.array(self.uav_msg[0].second_order_dynamic) - np.array(self.uav_msg[0].dot2_nu))
-        le2 = self.adj[1] * (np.array(self.uav_msg[1].second_order_dynamic) - np.array(self.uav_msg[1].dot2_nu)) \
-            if self.uav_existance[1] == 1 else np.zeros(3)
+        le1 = self.adj[0] * (np.array(self.uav_msg[0].second_order_dynamic) - np.array(self.uav_msg[0].dot2_nu)) \
+            if self.uav_existance[0] == 1 else np.zeros(3)
+        le2 = self.adj[1] * (np.array(self.uav_msg[1].second_order_dynamic) - np.array(self.uav_msg[1].dot2_nu))
         le3 = self.adj[2] * (np.array(self.uav_msg[2].second_order_dynamic) - np.array(self.uav_msg[2].dot2_nu)) \
             if self.uav_existance[2] == 1 else np.zeros(3)
         le4 = self.adj[3] * (np.array(self.uav_msg[3].second_order_dynamic) - np.array(self.uav_msg[3].dot2_nu)) \
@@ -248,7 +248,7 @@ class UAV_ROS_Consensus:
         self.lambda_eta = lambda_eta.copy()
     
     def check_other_uav_ok(self):
-        return (self.uav_msg[1].are_you_ok.data and
+        return (self.uav_msg[0].are_you_ok.data and
                 self.uav_msg[2].are_you_ok.data and
                 self.uav_msg[3].are_you_ok.data)
     
@@ -260,18 +260,18 @@ class UAV_ROS_Consensus:
                         dot2_nu: np.ndarray,
                         ctrl: np.ndarray,
                         obs: np.ndarray):
-        # self.uav_msg[0].are_you_ok.data = True if (self.global_flag == 2 or self.global_flag == 3) else False
-        self.uav_msg[0].finish.data = True if self.global_flag == 3 else False
-        self.uav_msg[0].eta = self.eta().tolist()
-        self.uav_msg[0].dot_eta = self.dot_eta().tolist()
-        self.uav_msg[0].ref = ref.tolist()
-        self.uav_msg[0].dot_ref = dot_ref.tolist()
-        self.uav_msg[0].nu = nu.tolist()
-        self.uav_msg[0].dot_nu = dot_nu.tolist()
-        self.uav_msg[0].dot2_nu = dot2_nu.tolist()
-        self.uav_msg[0].second_order_dynamic = (-self.kt / self.m * self.dot_eta() + ctrl + obs).tolist()
-        self.uav_msg[0].name = 'uav0'
-        self.uav_msg_0_pub.publish(self.uav_msg[0])
+        # self.uav_msg[1].are_you_ok.data = True if (self.global_flag == 2 or self.global_flag == 3) else False
+        self.uav_msg[1].finish.data = True if self.global_flag == 3 else False
+        self.uav_msg[1].eta = self.eta().tolist()
+        self.uav_msg[1].dot_eta = self.dot_eta().tolist()
+        self.uav_msg[1].ref = ref.tolist()
+        self.uav_msg[1].dot_ref = dot_ref.tolist()
+        self.uav_msg[1].nu = nu.tolist()
+        self.uav_msg[1].dot_nu = dot_nu.tolist()
+        self.uav_msg[1].dot2_nu = dot2_nu.tolist()
+        self.uav_msg[1].second_order_dynamic = (-self.kt / self.m * self.dot_eta() + ctrl + obs).tolist()
+        self.uav_msg[1].name = 'uav1'
+        self.uav_msg_1_pub.publish(self.uav_msg[1])
     
     def nn_input_publish(self):
         self.nn_input.data = np.concatenate((self.consensus_e, self.consensus_de)).tolist()
@@ -315,10 +315,10 @@ class UAV_ROS_Consensus:
         if ((np.linalg.norm(self.pos0 - self.pos) < 0.2) and  # 位置误差
                 (np.linalg.norm(self.vel) < 0.1) and  # 速度
                 (np.linalg.norm(self.att[2]) < deg2rad(5))):  # 偏航角
-            self.uav_msg[0].are_you_ok.data = False
+            self.uav_msg[1].are_you_ok.data = False
             return True
         else:
-            self.uav_msg[0].are_you_ok.data = True
+            self.uav_msg[1].are_you_ok.data = True
             return False
     
     def connect(self):
@@ -354,13 +354,6 @@ class UAV_ROS_Consensus:
             self.rate.sleep()
     
     def publish_ctrl_cmd(self, ctrl, psi_d, phi_d_old, theta_d_old, dt, att_limit, dot_att_limit, use_gazebo):
-        # phi_d, theta_d, uf = uo_2_ref_angle_throttle(ctrl,
-        #                                              self.att,
-        #                                              psi_d,
-        #                                              self.m,
-        #                                              self.g,
-        #                                              limit=[np.pi / 4, np.pi / 4],
-        #                                              att_limitation=True)
         phi_d, theta_d, dot_phi_d, dot_theta_d, uf = uo_2_ref_angle_throttle2(control=ctrl,
                                                                               attitude=self.att,
                                                                               psi_d=psi_d,

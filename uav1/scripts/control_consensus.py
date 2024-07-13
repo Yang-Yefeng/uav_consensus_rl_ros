@@ -10,7 +10,7 @@ from control.utils import *
 cur_path = os.path.dirname(os.path.abspath(__file__))
 
 if __name__ == "__main__":
-    rospy.init_node("uav0_control_consensus")
+    rospy.init_node("uav1_control_consensus")
     
     '''load some global configuration parameters'''
     t_miemie = rospy.get_param('~t_miemie')  # 轨迹跟踪前的初始化等待时间
@@ -24,9 +24,9 @@ if __name__ == "__main__":
     '''load some global configuration parameters'''
     
     pos_ctrl_param = fntsmc_param()
-    pos_ctrl_param.load_param_from_yaml('~uav0_fntsmc_parameters')
+    pos_ctrl_param.load_param_from_yaml('~uav1_fntsmc_parameters')
     
-    uav_ros = UAV_ROS_Consensus(use_ros_param=True, name='~uav0_parameters')
+    uav_ros = UAV_ROS_Consensus(use_ros_param=True, name='~uav1_parameters')
     uav_ros.connect()
     uav_ros.offboard_arm()
     
@@ -35,9 +35,9 @@ if __name__ == "__main__":
     
     '''define controllers and observers'''
     obs_xy = rd3()
-    obs_xy.load_param_from_yaml('~uav0_obs_xy')
+    obs_xy.load_param_from_yaml('~uav1_obs_xy')
     obs_z = rd3()
-    obs_z.load_param_from_yaml('~uav0_obs_z')
+    obs_z.load_param_from_yaml('~uav1_obs_z')
     controller = fntsmc_consensus(pos_ctrl_param)
     data_record = data_collector(N=TOTAL_SEQ)
     ctrl_param_record = None
@@ -55,7 +55,7 @@ if __name__ == "__main__":
         
         oa = np.array([0., 0., 0.]).astype(float)
         op = np.array([5, 5, 4]).astype(float)
-        oba = np.array([1.0, 0, 0]).astype(float)
+        oba = np.array([0, 1.0, 0]).astype(float)
         obp = np.array([0., 0., 0.]).astype(float)
     elif test_group == 1:
         # 第二组 整体平移，小圈不动
@@ -66,7 +66,7 @@ if __name__ == "__main__":
         
         oa = np.array([0., 0., 0.])
         op = np.array([5, 5, 4])
-        oba = np.array([0.5, 0, 0])
+        oba = np.array([0, 0.5, 0])
         obp = np.array([0., 0., 0.])
     elif test_group == 2:
         # 第三组 大圈逆时针，小圈逆时针
@@ -89,7 +89,7 @@ if __name__ == "__main__":
         oa = np.array([0.5, 0.5, 0.])
         op = np.array([5, 5, 4])
         oba = np.array([0., 0, 0])
-        obp = np.array([np.pi / 2, 0., 0.])
+        obp = np.array([np.pi, np.pi / 2, 0.])
     else:
         # 不动
         ra = np.zeros(4)
@@ -122,14 +122,14 @@ if __name__ == "__main__":
         if uav_ros.global_flag == 1:  # approaching
             okk = uav_ros.approaching()
             if okk:
-                uav_ros.uav_msg[0].are_you_ok.data = True
+                uav_ros.uav_msg[1].are_you_ok.data = True
             else:
-                uav_ros.uav_msg[0].are_you_ok.data = False
+                uav_ros.uav_msg[1].are_you_ok.data = False
             if okk and uav_ros.check_other_uav_ok():
                 uav_ros.global_flag = 2
             t0 = rospy.Time.now().to_sec()
         elif uav_ros.global_flag == 2:  # control
-            uav_ros.uav_msg[0].are_you_ok.data = True
+            uav_ros.uav_msg[1].are_you_ok.data = True
             t_now = round(t - t0, 4)
             if uav_ros.n % 100 == 0:
                 print('time: ', t_now)
@@ -204,19 +204,19 @@ if __name__ == "__main__":
             
             if data_record.index == data_record.N:
                 print('Data collection finish. Switching to offboard position...')
-                save_path = cur_path + '/datasave/uav0/'
+                save_path = cur_path + '/datasave/uav1/'
                 if not os.path.exists(save_path):
                     os.mkdir(save_path)
                 data_record.package2file(path=save_path)
                 uav_ros.global_flag = 3
         elif uav_ros.global_flag == 3:  # finish, back to position
-            uav_ros.uav_msg[0].are_you_ok.data = True
+            uav_ros.uav_msg[1].are_you_ok.data = True
             uav_ros.pose.pose.position.x = 0
             uav_ros.pose.pose.position.y = 0
             uav_ros.pose.pose.position.z = 0.5
             uav_ros.local_pos_pub.publish(uav_ros.pose)
         else:
-            uav_ros.uav_msg[0].are_you_ok.data = True
+            uav_ros.uav_msg[1].are_you_ok.data = True
             uav_ros.pose.pose.position.x = 0
             uav_ros.pose.pose.position.y = 0
             uav_ros.pose.pose.position.z = 0.5

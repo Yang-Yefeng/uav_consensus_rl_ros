@@ -1,15 +1,15 @@
-uav0_parameters:
+uav1_parameters:
     uav_existance: [1, 1, 0, 0]
-    adj: [0, 0, 0, 0]
-    b: 1
-    d: 0
+    adj: [1, 0, 0, 0]
+    b: 0
+    d: 1
     m: 1.5
-    pos0: [2.0, 0., 1.0]
-    offset: [3, 0., 0.]
+    pos0: [1.0, 1.0, 1.0]
+    offset: [1.0, 2.0, 0.]
     dt: 0.01
-    group: '/uav0'
+    group: '/uav1'
 
-uav0_fntsmc_parameters:
+uav1_fntsmc_parameters:
     k1: [0.3, 0.3, 0.3]
     k2: [0.5, 0.5, 0.5]
     k3: [0.5, 0.5, 0.5]
@@ -25,13 +25,13 @@ uav0_fntsmc_parameters:
     dim: 3
     dt: 0.01
 
-uav0_obs_xy:
+uav1_obs_xy:
     use_freq: True
     omega: [[1.0, 1.1, 1.2], [1.0, 1.1, 1.2]]
     dim: 2
     dt: 0.01
 
-uav0_obs_z:
+uav1_obs_z:
     use_freq: true
     omega: [[1.2, 1.2, 1.2]]
     dim: 1

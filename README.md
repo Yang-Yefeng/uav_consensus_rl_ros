@@ -125,5 +125,5 @@ Group 3 (中心点 8 字型，四个无人机偏移量不变):
 <img src="https://github.com/Yang-Yefeng/uav_consensus_rl_ros/blob/FJ005/master/gif/four_drone_gazebo_test3.gif" width="400px">
 </div>
 
-## multi agent experiment
+## 多智能体实验
 奥利给干了，老铁们，实验还没做呢......

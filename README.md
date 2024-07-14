@@ -107,10 +107,7 @@ Gazebo 默认最多支持 10 架，熟悉这个项目的代码之后可以随意
 此外，实际实验时，本项目所拟定使用的飞机不是那种巴掌大的CrazyFile，所以一键启动容易有危险，
 最好一架一架一次启动，这样便于观察异常。
 
-## multi agent experiment
-奥利给干了，老铁们，实验还，没做呢。
-
-## 仿真视频
+### 仿真视频
 Group 0 (中心点画圆，四个无人机偏移量不变):
 <div align=center>
 <img src="https://github.com/Yang-Yefeng/uav_consensus_rl_ros/blob/FJ005/master/gif/four_drone_gazebo_test0.gif" width="400px">
@@ -127,3 +124,6 @@ Group 3 (中心点 8 字型，四个无人机偏移量不变):
 <div align=center>
 <img src="https://github.com/Yang-Yefeng/uav_consensus_rl_ros/blob/FJ005/master/gif/four_drone_gazebo_test3.gif" width="400px">
 </div>
+
+## multi agent experiment
+奥利给干了，老铁们，实验还没做呢......

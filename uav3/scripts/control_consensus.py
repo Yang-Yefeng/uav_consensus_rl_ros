@@ -102,15 +102,29 @@ if __name__ == "__main__":
     #     op = np.zeros(4)
     #     oba = np.zeros(4)
     #     obp = np.zeros(4)
-    ra = np.array(rospy.get_param('~ra')).astype(float)
-    rp = np.array(rospy.get_param('~rp')).astype(float)
-    rba = np.array(rospy.get_param('~rba')).astype(float)
-    rbp = np.array(rospy.get_param('~rbp')).astype(float)
-    
-    oa = np.array(rospy.get_param('~oa_3')).astype(float)
-    op = np.array(rospy.get_param('~op_3')).astype(float)
-    oba = np.array(rospy.get_param('~oba_3')).astype(float)
-    obp = np.array(rospy.get_param('~obp_3')).astype(float)
+    # ra = np.array(rospy.get_param('~ra')).astype(float)
+    # rp = np.array(rospy.get_param('~rp')).astype(float)
+    # rba = np.array(rospy.get_param('~rba')).astype(float)
+    # rbp = np.array(rospy.get_param('~rbp')).astype(float)
+    #
+    # oa = np.array(rospy.get_param('~oa_3')).astype(float)
+    # op = np.array(rospy.get_param('~op_3')).astype(float)
+    # oba = np.array(rospy.get_param('~oba_3')).astype(float)
+    # obp = np.array(rospy.get_param('~obp_3')).astype(float)
+    if test_group == 0 or test_group == 1 or test_group == 2 or test_group == 3:
+        _s = str(test_group)
+    else:
+        _s = 'else'
+    _traj = rospy.get_param('~trajectory_' + _s)
+    ra = np.array(_traj['ra']).astype(float)
+    rp = np.array(_traj['rp']).astype(float)
+    rba = np.array(_traj['rba']).astype(float)
+    rbp = np.array(_traj['rbp']).astype(float)
+
+    oa = np.array(_traj['oa']).astype(float)[3]
+    op = np.array(_traj['op']).astype(float)[3]
+    oba = np.array(_traj['oba']).astype(float)[3]
+    obp = np.array(_traj['obp']).astype(float)[3]
     '''define trajectory'''
     
     if test_group == 3:

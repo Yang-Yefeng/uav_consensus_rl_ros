@@ -7,7 +7,7 @@ from control.observer import robust_differentiator_3rd as rd3
 from control.collector import data_collector
 from control.utils import *
 
-cur_path = os.path.dirname(os.path.abspath(__file__))
+cur_ws = os.path.dirname(os.path.abspath(__file__)) + '/../../'
 
 if __name__ == "__main__":
     rospy.init_node("uav0_control_consensus")
@@ -220,7 +220,7 @@ if __name__ == "__main__":
             
             if data_record.index == data_record.N:
                 print('Data collection finish. Switching to offboard position...')
-                save_path = cur_path + '/datasave/uav0/'
+                save_path = cur_ws + '/master/datasave/uav0/'
                 if not os.path.exists(save_path):
                     os.mkdir(save_path)
                 data_record.package2file(path=save_path)

@@ -112,9 +112,18 @@ Gazebo 默认最多支持 10 架，熟悉这个项目的代码之后可以随意
 
 ## 仿真视频
 Group 0 (中心点画圆，四个无人机偏移量不变):
-
+<div align=center>
+<img src="https://github.com/Yang-Yefeng/uav_consensus_rl_ros/blob/FJ005/master/gif/four_drone_gazebo_test0.gif" width="400px">
+</div>
 Group 1 (心点定点，四个无人机偏移量不变):
-
+<div align=center>
+<img src="https://github.com/Yang-Yefeng/uav_consensus_rl_ros/blob/FJ005/master/gif/four_drone_gazebo_test1.gif" width="400px">
+</div>
 Group 2 (中定点画圆，四个无人机偏移量也是圆):
-
+<div align=center>
+<img src="https://github.com/Yang-Yefeng/uav_consensus_rl_ros/blob/FJ005/master/gif/four_drone_gazebo_test2.gif" width="400px">
+</div>
 Group 3 (中心点 8 字型，四个无人机偏移量不变):
+<div align=center>
+<img src="https://github.com/Yang-Yefeng/uav_consensus_rl_ros/blob/FJ005/master/gif/four_drone_gazebo_test3.gif" width="400px">
+</div>

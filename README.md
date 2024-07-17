@@ -66,9 +66,9 @@ roslaunch uav0 control_single.launch config:=vicon
 OKK!
 
 ## 多无人机仿真
-以 2 架无人机为例，需要打开三个终端
+以 2 架无人机为例，需要打开 4 个终端
 
-- 第一个终端 (用于打开 Gazebo 仿真环境)
+- 第 1 个终端 (用于打开 Gazebo 仿真环境)
 
 ```
 cd $(YOUR_WORK_SPACE)
@@ -78,14 +78,24 @@ cd src/uav_consensus_rl_ros/master
 ./yyf_conensus_gazebo.sh
 ```
 
-- 第二个终端 (用于启动第 1 个无人机控制节点)
+- 第 2 个终端 (用于开启 global_config)
+
+```
+cd $(YOUR_WORK_SPACE)
+catkin_make
+source devel/setup.bash
+roslaunch master global_config.launch
+```
+
+- 第 3 个终端 (用于启动第 1 个无人机控制节点)
+
 ```
 cd $(YOUR_WORK_SPACE)
 source devel/setup.bash
-roslaunch master consensus_uav0.launch config:=gazebo
+roslaunch uav0 consensus_uav0.launch config:=gazebo
 ```
 
-- 第三个终端 (用于启动第 2 个无人机控制节点)
+- 第 4 个终端 (用于启动第 2 个无人机控制节点)
 ```
 cd $(YOUR_WORK_SPACE)
 source devel/setup.bash

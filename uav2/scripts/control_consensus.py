@@ -165,7 +165,7 @@ if __name__ == "__main__":
             
             if data_record.index == data_record.N:
                 print('Data collection finish. Switching to offboard position...')
-                save_path = cur_ws + '/master/datasave/uav2/'
+                save_path = cur_ws + 'uav2/scripts/datasave/uav2/'
                 if not os.path.exists(save_path):
                     os.mkdir(save_path)
                 data_record.package2file(path=save_path)

@@ -59,7 +59,9 @@ Tips: 实际使用时，在执行过 consensus_uav*_mavros.launch 之后，需�
 1. 打开我电脑的终端，进入 .bashrc，输入以下指令
 
     ```
-    忘了，晚上再说
+    export ROS_HOSTNAME=192.168.50.172					# HOST is myself
+    export ROS_MASTER_URI=http://192.168.50.172:11311	# who is the master
+    export ROS_IP=192.168.50.172					# my IP
     ```
     保存关闭，然后执行 source .bashrc
 

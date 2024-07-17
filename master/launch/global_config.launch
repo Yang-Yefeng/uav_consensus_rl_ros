@@ -1,0 +1,8 @@
+<launch>
+    <arg name="config" default='vicon' />
+<!--     <arg name="num" type="int" default=1 /> -->
+    <param name="config" value="$(arg config)" />
+    <node pkg="master" type="global_config.py" name="global_config" output="screen">
+        <rosparam file="$(find master)/config/$(arg config)/global_config_$(arg config).yaml" command="load" />
+    </node>
+</launch>

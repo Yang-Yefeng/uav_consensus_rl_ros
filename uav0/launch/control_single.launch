@@ -4,6 +4,6 @@
 
     <node pkg="uav0" type="rl_param_opt.py" name="uav0_rl_param_opt" output="screen" />
     <node pkg="uav0" type="control_single.py" name="uav0_control_single" output="screen">
-        <rosparam file="$(find uav0)/config/uav0_config_$(arg config)_single.yaml" command="load" />
+        <rosparam file="$(find uav0)/config/$(arg config)/uav0_config_single.yaml" command="load" />
     </node>
 </launch>

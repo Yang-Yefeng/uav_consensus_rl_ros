@@ -13,15 +13,15 @@ if __name__ == "__main__":
     rospy.init_node("uav1_control_consensus")
     
     '''load some global configuration parameters'''
-    t_miemie = rospy.get_param('~t_miemie')  # 轨迹跟踪前的初始化等待时间
-    test_group = int(rospy.get_param('~test_group'))  # 使用的测试轨迹编号
-    dt = rospy.get_param('~dt')  # 采样时间
-    time_max = rospy.get_param('~time_max')  # 最大仿真时间
+    t_miemie = rospy.get_param('/global_config/t_miemie')  # 轨迹跟踪前的初始化等待时间
+    test_group = int(rospy.get_param('/global_config/test_group'))  # 使用的测试轨迹编号
+    dt = rospy.get_param('/global_config/dt')  # 采样时间
+    time_max = rospy.get_param('/global_config/time_max')  # 最大仿真时间
     TOTAL_SEQ = round((time_max + t_miemie) / dt)  # 参考序列长度
-    use_gazebo = rospy.get_param('~use_gazebo')
-    CONTROLLER = rospy.get_param('~controller')
-    use_obs = rospy.get_param('~use_obs')
-    uav_existance = rospy.get_param('~uav_existance')
+    use_gazebo = rospy.get_param('/global_config/use_gazebo')
+    CONTROLLER = rospy.get_param('/global_config/controller')
+    use_obs = rospy.get_param('/global_config/use_obs')
+    uav_existance = rospy.get_param('/global_config/uav_existance')
     pos0 = rospy.get_param('~uav1_parameters')['pos0']
     '''load some global configuration parameters'''
     
@@ -52,7 +52,7 @@ if __name__ == "__main__":
         _s = str(test_group)
     else:
         _s = 'else'
-    _traj = rospy.get_param('~trajectory_' + _s)
+    _traj = rospy.get_param('/global_config/trajectory_' + _s)
     ra = np.array(_traj['ra']).astype(float)
     rp = np.array(_traj['rp']).astype(float)
     rba = np.array(_traj['rba']).astype(float)

@@ -1,5 +1,5 @@
 <launch>
-    <arg name="vicon_server" default="192.168.10.1"/>
+    <arg name="vicon_server" default="192.168.50.142"/>
 
     <node pkg="vrpn_client_ros" type="vrpn_client_node" name="vrpn_client_node" output="screen">
         <rosparam subst_value="true">
@@ -20,14 +20,14 @@
             #- SecondTracker
         </rosparam>
 
-        <remap from="/vrpn_client_node/gh034_bravo/pose" to="/uav0/mavros/vision_pose/pose" />
-        <remap from="/vrpn_client_node/gh034_bravo/twist" to="/uav0/mavros/vision_speed/speed_vector" />
+        <remap from="/vrpn_client_node/gh034_charlie/pose" to="/uav0/mavros/vision_pose/pose" />
+        <remap from="/vrpn_client_node/gh034_charlie/twist" to="/uav0/mavros/vision_speed/speed_vector" />
 
-        <remap from="/vrpn_client_node/gh034_charlie/pose" to="/uav1/mavros/vision_pose/pose" />
-        <remap from="/vrpn_client_node/gh034_charlie/twist" to="/uav1/mavros/vision_speed/speed_vector" />
+        <remap from="/vrpn_client_node/gh034_delta/pose" to="/uav1/mavros/vision_pose/pose" />
+        <remap from="/vrpn_client_node/gh034_delta/twist" to="/uav1/mavros/vision_speed/speed_vector" />
 
-        <remap from="/vrpn_client_node/gh034_delta/pose" to="/uav2/mavros/vision_pose/pose" />
-        <remap from="/vrpn_client_node/gh034_delta/twist" to="/uav2/mavros/vision_speed/speed_vector" />
+        <remap from="/vrpn_client_node/gh034_bravo/pose" to="/uav2/mavros/vision_pose/pose" />
+        <remap from="/vrpn_client_node/gh034_bravo/twist" to="/uav2/mavros/vision_speed/speed_vector" />
 
         <remap from="/vrpn_client_node/gh034_alpha/pose" to="/uav3/mavros/vision_pose/pose" />
         <remap from="/vrpn_client_node/gh034_alpha/twist" to="/uav3/mavros/vision_speed/speed_vector" />

@@ -34,7 +34,7 @@ if __name__ == "__main__":
     
     print('Approaching...')
     uav_ros.global_flag = 1
-    #sdfsdf
+    #sdfsdfssdfsdfsdf
     
     '''define controllers and observers'''
     obs_xy = rd3()

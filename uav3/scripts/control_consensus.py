@@ -22,7 +22,7 @@ if __name__ == "__main__":
     CONTROLLER = rospy.get_param('/global_config/controller')
     use_obs = rospy.get_param('/global_config/use_obs')
     uav_existance = rospy.get_param('/global_config/uav_existance')
-    pos0 = rospy.get_param('~uav3_parameters')['pos0']
+    # pos0 = rospy.get_param('~uav3_parameters')['pos0']
     '''load some global configuration parameters'''
     
     pos_ctrl_param = fntsmc_param()
@@ -71,6 +71,9 @@ if __name__ == "__main__":
     NU, DOT_NU, DOT2_NU = offset_uav_sequence_with_dead(dt, time_max, t_miemie, oa, op, oba, obp)
     
     t0 = rospy.Time.now().to_sec()
+
+    uav_ros.pos0 = REF[0][0:3]
+
     while not rospy.is_shutdown():
         t = rospy.Time.now().to_sec()
         
@@ -172,15 +175,15 @@ if __name__ == "__main__":
                 uav_ros.global_flag = 3
         elif uav_ros.global_flag == 3:  # finish, back to position
             uav_ros.uav_msg[3].are_you_ok.data = True
-            uav_ros.pose.pose.position.x = pos0[0]
-            uav_ros.pose.pose.position.y = pos0[1]
-            uav_ros.pose.pose.position.z = pos0[2]
+            uav_ros.pose.pose.position.x = uav_ros.pos0[0]
+            uav_ros.pose.pose.position.y = uav_ros.pos0[1]
+            uav_ros.pose.pose.position.z = uav_ros.pos0[2]
             uav_ros.local_pos_pub.publish(uav_ros.pose)
         else:
             uav_ros.uav_msg[3].are_you_ok.data = True
-            uav_ros.pose.pose.position.x = pos0[0]
-            uav_ros.pose.pose.position.y = pos0[1]
-            uav_ros.pose.pose.position.z = pos0[2]
+            uav_ros.pose.pose.position.x = uav_ros.pos0[0]
+            uav_ros.pose.pose.position.y = uav_ros.pos0[1]
+            uav_ros.pose.pose.position.z = uav_ros.pos0[2]
             uav_ros.local_pos_pub.publish(uav_ros.pose)
             print('working mode error...')
         uav_ros.uav_msg_publish(ref, dot_ref, nu, dot_nu, dot2_nu, controller.control_out_consensus, observe)

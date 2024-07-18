@@ -22,7 +22,7 @@ if __name__ == "__main__":
     CONTROLLER = rospy.get_param('/global_config/controller')
     use_obs = rospy.get_param('/global_config/use_obs')
     uav_existance = rospy.get_param('/global_config/uav_existance')
-    pos0 = rospy.get_param('~uav0_parameters')['pos0']
+    # pos0 = rospy.get_param('~uav0_parameters')['pos0']
     '''load some global configuration parameters'''
     
     pos_ctrl_param = fntsmc_param()
@@ -48,61 +48,6 @@ if __name__ == "__main__":
     assert dt == controller.dt == obs_xy.dt == obs_z.dt  # 检查各个模块采样时间是否相同
     
     '''define trajectory'''
-    # if test_group == 0:
-    #     # 第一组 大圈逆时针，小圈不动 (轨迹跟踪)
-    #     ra = np.array([1.0, 1.0, 0.3, deg2rad(0)]).astype(float)
-    #     rp = np.array([6, 6, 8, 10]).astype(float)
-    #     rba = np.array([0, 0, 1, deg2rad(0)]).astype(float)
-    #     rbp = np.array([np.pi / 2, 0, 0, 0]).astype(float)
-    #
-    #     oa = np.array([0., 0., 0.]).astype(float)
-    #     op = np.array([5, 5, 4]).astype(float)
-    #     oba = np.array([1.0, 0, 0]).astype(float)
-    #     obp = np.array([0., 0., 0.]).astype(float)
-    # elif test_group == 1:
-    #     # 第二组 整体平移，小圈不动
-    #     ra = np.array([0, 0, 0, deg2rad(0)]).astype(float)
-    #     rp = np.array([6, 6, 8, 10]).astype(float)
-    #     rba = np.array([0, 0, 1, deg2rad(0)]).astype(float)
-    #     rbp = np.array([np.pi / 2, 0, 0, 0]).astype(float)
-    #
-    #     oa = np.array([0., 0., 0.])
-    #     op = np.array([5, 5, 4])
-    #     oba = np.array([0.5, 0, 0])
-    #     obp = np.array([0., 0., 0.])
-    # elif test_group == 2:
-    #     # 第三组 大圈逆时针，小圈逆时针
-    #     ra = np.array([1, 1, 0.3, deg2rad(0)]).astype(float)
-    #     rp = np.array([10, 10, 8, 10]).astype(float)
-    #     rba = np.array([0, 0, 1, deg2rad(0)]).astype(float)
-    #     rbp = np.array([np.pi / 2, 0, 0, 0]).astype(float)
-    #
-    #     oa = np.array([0.5, 0.5, 0.])
-    #     op = np.array([5, 5, 4])
-    #     oba = np.array([0., 0, 0])
-    #     obp = np.array([np.pi / 2, 0., 0.])
-    # elif test_group == 3:
-    #     # 第四组 大圈八字，小圈不动
-    #     ra = np.array([1, 1, 0.3, deg2rad(0)]).astype(float)
-    #     rp = np.array([10, 10, 8, 10]).astype(float)
-    #     rba = np.array([0, 0, 1, deg2rad(0)]).astype(float)
-    #     rbp = np.array([np.pi / 2, 0, 0, 0]).astype(float)
-    #
-    #     oa = np.array([0.5, 0.5, 0.])
-    #     op = np.array([5, 5, 4])
-    #     oba = np.array([0., 0, 0])
-    #     obp = np.array([np.pi / 2, 0., 0.])
-    # else:
-    #     # 不动
-    #     ra = np.zeros(4)
-    #     rp = np.zeros(4)
-    #     rba = np.zeros(4)
-    #     rbp = np.zeros(4)
-    #
-    #     oa = np.zeros(4)
-    #     op = np.zeros(4)
-    #     oba = np.zeros(4)
-    #     obp = np.zeros(4)
     if test_group == 0 or test_group == 1 or test_group == 2 or test_group == 3:
         _s = str(test_group)
     else:
@@ -126,6 +71,9 @@ if __name__ == "__main__":
     NU, DOT_NU, DOT2_NU = offset_uav_sequence_with_dead(dt, time_max, t_miemie, oa, op, oba, obp)
     
     t0 = rospy.Time.now().to_sec()
+
+    uav_ros.pos0 = REF[0][0:3]
+
     while not rospy.is_shutdown():
         t = rospy.Time.now().to_sec()
         
@@ -228,15 +176,15 @@ if __name__ == "__main__":
                 uav_ros.global_flag = 3
         elif uav_ros.global_flag == 3:  # finish, back to position
             uav_ros.uav_msg[0].are_you_ok.data = True
-            uav_ros.pose.pose.position.x = pos0[0]
-            uav_ros.pose.pose.position.y = pos0[1]
-            uav_ros.pose.pose.position.z = pos0[2]
+            uav_ros.pose.pose.position.x = uav_ros.pos0[0]
+            uav_ros.pose.pose.position.y = uav_ros.pos0[1]
+            uav_ros.pose.pose.position.z = uav_ros.pos0[2]
             uav_ros.local_pos_pub.publish(uav_ros.pose)
         else:
             uav_ros.uav_msg[0].are_you_ok.data = True
-            uav_ros.pose.pose.position.x = pos0[0]
-            uav_ros.pose.pose.position.y = pos0[1]
-            uav_ros.pose.pose.position.z = pos0[2]
+            uav_ros.pose.pose.position.x = uav_ros.pos0[0]
+            uav_ros.pose.pose.position.y = uav_ros.pos0[1]
+            uav_ros.pose.pose.position.z = uav_ros.pos0[2]
             uav_ros.local_pos_pub.publish(uav_ros.pose)
             print('working mode error...')
         uav_ros.uav_msg_publish(ref, dot_ref, nu, dot_nu, dot2_nu, controller.control_out_consensus, observe)

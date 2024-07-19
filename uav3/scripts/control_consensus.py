@@ -22,7 +22,6 @@ if __name__ == "__main__":
     CONTROLLER = rospy.get_param('/global_config/controller')
     use_obs = rospy.get_param('/global_config/use_obs')
     uav_existance = rospy.get_param('/global_config/uav_existance')
-    # pos0 = rospy.get_param('~uav3_parameters')['pos0']
     '''load some global configuration parameters'''
     
     pos_ctrl_param = fntsmc_param()

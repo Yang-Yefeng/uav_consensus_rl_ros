@@ -66,19 +66,18 @@ Tips: 实际使用时，在执行过 consensus_uav*_mavros.launch 之后，需�
     ```
     保存关闭，然后执行 source .bashrc
 
-2. 打开终端，执行 roscore，这时已经打开了整个多机 ROS 的工作空间，实验全程，我的 roscore 不能关
-3. 为每一架飞机单独执行程序，所以需要进入多个 docker，自己分清楚别乱了就行。这里我们用两架飞机为例来说明实验流程。
+2. 为每一架飞机单独执行程序，所以需要进入多个 docker，自己分清楚别乱了就行。这里我们用两架飞机为例来说明实验流程。
 
     实验前准备: 为了方便，我们飞机的名称和编号对应已经写在上边了，0，1，2，3 分别对应 charlie，delta，bravo，alpha
     如果只有两架飞机，那么我们就默认是 charlie 和 delta；同理，如果是三架，我们就默认是 charlie，delta，bravo
 
-    3.1 笔记本电脑用网线连接路由器 (IP: 192.168.50.172)
+    2.1 笔记本电脑用网线连接路由器 (IP: 192.168.50.172)
     
-    3.2 打开两架飞机，进入他们的 ssh (IP 在上边已经写了)，然后进入他们的 docker，通过 VS Code 远程进入他们各自的程序
+    2.2 打开两架飞机，进入他们的 ssh (IP 在上边已经写了)，然后进入他们的 docker，通过 VS Code 远程进入他们各自的程序
     
     `注意: 不要进错地方！！一定要仔仔细细检查，不然会炸机，而且大概率一炸机就是两架飞机！！！`
 
-    3.3 在主机上 (我的笔记本) 执行两个程序:
+    2.3 在主机上 (我的笔记本) 执行两个程序:
     
     ```
     # open terminal one, enter the ros workspace, and source
@@ -92,7 +91,7 @@ Tips: 实际使用时，在执行过 consensus_uav*_mavros.launch 之后，需�
    # 注意: 仔细检查 global_config_vicon.launch 的各个参数！！！！
     ```
 
-    3.4 在第一架飞机的 ssh 中，运行程序
+    2.4 在第一架飞机的 ssh 中，运行程序
 
     ```
     # open terminal one, enter the ros workspace, and source
@@ -104,7 +103,7 @@ Tips: 实际使用时，在执行过 consensus_uav*_mavros.launch 之后，需�
     roslaunch uav0 consensus_uav0.launch config:=vicon
     ```
 
-    3.5 在第二架飞机的 ssh 中，运行程序
+    2.5 在第二架飞机的 ssh 中，运行程序
 
     ```
     # open terminal one, enter the ros workspace, and source

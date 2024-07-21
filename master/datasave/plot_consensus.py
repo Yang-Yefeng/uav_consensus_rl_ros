@@ -37,7 +37,7 @@ def plot_pos_consensus():
     
         plt.subplot(n, 3, i * 3 + 3)
         plt.plot(time, ref_pos[:, 2], 'red')
-        plt.plot(time, uav_pos[:, 2], 'blue')
+        plt.plot(time, uav_pos[:, 2] + 0.00, 'blue')
         plt.grid(True)
         y_min = np.min(uav_pos[:, 2])
         y_max = np.max(uav_pos[:, 2])

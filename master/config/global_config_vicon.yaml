@@ -3,13 +3,13 @@ dt: 0.01
 time_max: 15.0
 use_gazebo: true
 use_obs: true
-uav_existance: [1, 1, 0, 0]
+uav_existance: [1, 0, 0, 0]
 
-controller: 'FNTSMC'
+#controller: 'FNTSMC'
 pi: 3.1416
-# CONTROLLER = 'RL'
-# CONTROLLER = 'PX4-PID'
-# CONTROLLER = 'MPC'
+controller: 'RL'
+# controller: 'PX4-PID'
+# controller: 'MPC'
 
 test_group: 2
 

@@ -22,7 +22,6 @@ if __name__ == "__main__":
     CONTROLLER = rospy.get_param('/global_config/controller')
     use_obs = rospy.get_param('/global_config/use_obs')
     uav_existance = rospy.get_param('/global_config/uav_existance')
-    # pos0 = rospy.get_param('~uav0_parameters')['pos0']
     '''load some global configuration parameters'''
     
     pos_ctrl_param = fntsmc_param()
@@ -127,8 +126,8 @@ if __name__ == "__main__":
             else:
                 if CONTROLLER == 'RL':
                     ctrl_param_np = np.array(uav_ros.ctrl_param.data).astype(float)
-                    if t_now > t_miemie:  # 前几秒过渡一下
-                        controller.get_param_from_actor(ctrl_param_np, update_z=True)
+                    # if t_now > t_miemie:  # 前几秒过渡一下
+                    controller.get_param_from_actor(ctrl_param_np, update_z=True)
                     # controller.print_param()
                     ctrl_param_record = np.atleast_2d(ctrl_param_np) if ctrl_param_record is None else np.vstack((ctrl_param_record, ctrl_param_np))
                 
@@ -141,7 +140,7 @@ if __name__ == "__main__":
                                                           ref=eta_d + nu,
                                                           d_ref=dot_eta_d + dot_nu,
                                                           e_max=0.5,
-                                                          dot_e_max = 1.0)
+                                                          dot_e_max=1.0)
                 
                 phi_d, theta_d, dot_phi_d, dot_theta_d, uf = uav_ros.publish_ctrl_cmd(ctrl=controller.control_out_consensus,
                                                                                       psi_d=psi_d,

@@ -9,6 +9,7 @@ from control.collector import data_collector
 from control.utils import *
 
 cur_ws = os.path.dirname(os.path.abspath(__file__)) + '/../../'
+ID = 2
 
 if __name__ == "__main__":
     rospy.init_node("uav2_control_consensus")
@@ -63,22 +64,43 @@ if __name__ == "__main__":
     else:
         _s = 'else'
     _traj = rospy.get_param('/global_config/trajectory_' + _s)
-    ra = np.array(_traj['ra']).astype(float)
-    rp = np.array(_traj['rp']).astype(float)
-    rba = np.array(_traj['rba']).astype(float)
-    rbp = np.array(_traj['rbp']).astype(float)
-
-    oa = np.array(_traj['oa']).astype(float)[2]
-    op = np.array(_traj['op']).astype(float)[2]
-    oba = np.array(_traj['oba']).astype(float)[2]
-    obp = np.array(_traj['obp']).astype(float)[2]
-    '''define trajectory'''
     
-    if test_group == 3:
-        REF, DOT_REF, DOT2_REF = ref_uav_sequence_Bernoulli_with_dead(dt, time_max, t_miemie, ra, rp, rba, rbp)
-    else:
+    if test_group == 0 or test_group == 2:
+        ra = np.array(_traj['ra']).astype(float)
+        rp = np.array(_traj['rp']).astype(float)
+        rba = np.array(_traj['rba']).astype(float)
+        rbp = np.array(_traj['rbp']).astype(float)
+        
+        oa = np.array(_traj['oa']).astype(float)[ID]
+        op = np.array(_traj['op']).astype(float)[ID]
+        oba = np.array(_traj['oba']).astype(float)[ID]
+        obp = np.array(_traj['obp']).astype(float)[ID]
+        
         REF, DOT_REF, DOT2_REF = ref_uav_sequence_with_dead(dt, time_max, t_miemie, ra, rp, rba, rbp)
-    NU, DOT_NU, DOT2_NU = offset_uav_sequence_with_dead(dt, time_max, t_miemie, oa, op, oba, obp)
+        NU, DOT_NU, DOT2_NU = offset_uav_sequence_with_dead(dt, time_max, t_miemie, oa, op, oba, obp)
+    elif test_group == 1:
+        sp = np.array(_traj['sp']).astype(float)[ID]
+        REF, DOT_REF, DOT2_REF = ref_uav_set_point_sequence_with_dead(dt, time_max, t_miemie, sp)
+        NU = DOT_NU = DOT2_NU = np.zeros((int((time_max + t_miemie) / dt), 3))
+        # = np.zeros((int((time_max + t_miemie) / dt), 3))
+        # = np.zeros((int((time_max + t_miemie) / dt), 3))
+    elif test_group == 3:
+        ra = np.array(_traj['ra']).astype(float)
+        rp = np.array(_traj['rp']).astype(float)
+        rba = np.array(_traj['rba']).astype(float)
+        rbp = np.array(_traj['rbp']).astype(float)
+        
+        oa = np.array(_traj['oa']).astype(float)[ID]
+        op = np.array(_traj['op']).astype(float)[ID]
+        oba = np.array(_traj['oba']).astype(float)[ID]
+        obp = np.array(_traj['obp']).astype(float)[ID]
+        REF, DOT_REF, DOT2_REF = ref_uav_sequence_Bernoulli_with_dead(dt, time_max, t_miemie, ra, rp, rba, rbp)
+        NU, DOT_NU, DOT2_NU = offset_uav_sequence_with_dead(dt, time_max, t_miemie, oa, op, oba, obp)
+    else:
+        _n = int((time_max + t_miemie) / dt)
+        REF = np.tile([1.0, 0., 1.0, 0.], (_n, 1))
+        DOT_REF = DOT2_REF = np.zeros((_n, 4))
+        NU = DOT_NU = DOT2_NU = np.zeros((_n, 3))
     
     t0 = rospy.Time.now().to_sec()
 
@@ -96,14 +118,14 @@ if __name__ == "__main__":
         if uav_ros.global_flag == 1:  # approaching
             okk = uav_ros.approaching()
             if okk:
-                uav_ros.uav_msg[2].are_you_ok.data = True
+                uav_ros.uav_msg[ID].are_you_ok.data = True
             else:
-                uav_ros.uav_msg[2].are_you_ok.data = False
+                uav_ros.uav_msg[ID].are_you_ok.data = False
             if okk and uav_ros.check_other_uav_ok():
                 uav_ros.global_flag = 2
             t0 = rospy.Time.now().to_sec()
         elif uav_ros.global_flag == 2:  # control
-            uav_ros.uav_msg[2].are_you_ok.data = True
+            uav_ros.uav_msg[ID].are_you_ok.data = True
             t_now = round(t - t0, 4)
             if uav_ros.n % 100 == 0:
                 print('time: ', t_now)
@@ -184,13 +206,13 @@ if __name__ == "__main__":
                 data_record.package2file(path=save_path)
                 uav_ros.global_flag = 3
         elif uav_ros.global_flag == 3:  # finish, back to position
-            uav_ros.uav_msg[2].are_you_ok.data = True
+            uav_ros.uav_msg[ID].are_you_ok.data = True
             uav_ros.pose.pose.position.x = uav_ros.pos0[0]
             uav_ros.pose.pose.position.y = uav_ros.pos0[1]
             uav_ros.pose.pose.position.z = uav_ros.pos0[2]
             uav_ros.local_pos_pub.publish(uav_ros.pose)
         else:
-            uav_ros.uav_msg[2].are_you_ok.data = True
+            uav_ros.uav_msg[ID].are_you_ok.data = True
             uav_ros.pose.pose.position.x = uav_ros.pos0[0]
             uav_ros.pose.pose.position.y = uav_ros.pos0[1]
             uav_ros.pose.pose.position.z = uav_ros.pos0[2]

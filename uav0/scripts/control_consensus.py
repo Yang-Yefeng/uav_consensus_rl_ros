@@ -111,7 +111,6 @@ if __name__ == "__main__":
         ref, dot_ref, dot2_ref = REF[_index], DOT_REF[_index], DOT2_REF[_index]
         nu, dot_nu, dot2_nu = NU[_index], DOT_NU[_index], DOT2_NU[_index]
         observe = np.zeros(3)
-        # print('嗨嗨嗨嗨嗨嗨或', ref, nu)
         
         if uav_ros.global_flag == 1:  # approaching
             okk = uav_ros.approaching()

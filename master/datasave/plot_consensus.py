@@ -182,7 +182,7 @@ if __name__ == '__main__':
     plot_pos_consensus()
     # plot_att_consensus()
     # plot_thrust_consensus()
-    # plot_throttle_consensus()
+    plot_throttle_consensus()
     plot_obs_consensus()
 
     plt.show()

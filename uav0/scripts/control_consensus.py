@@ -3,6 +3,7 @@ import os, rospy
 
 from control.uav_ros_consensus import UAV_ROS_Consensus
 from control.FNTSMC import fntsmc_param, fntsmc_consensus
+from control.RFNTSMC import rfntsmc_param, rfntsmc_consensus
 from control.observer import robust_differentiator_3rd as rd3
 from control.collector import data_collector
 from control.utils import *
@@ -25,8 +26,12 @@ if __name__ == "__main__":
     # pos0 = rospy.get_param('~uav0_parameters')['pos0']
     '''load some global configuration parameters'''
     
-    pos_ctrl_param = fntsmc_param()
-    pos_ctrl_param.load_param_from_yaml('~uav0_fntsmc_parameters')
+    if CONTROLLER == 'RFNTSMC':
+        pos_ctrl_param = rfntsmc_param()
+        pos_ctrl_param.load_param_from_yaml('~uav0_rfntsmc_parameters')
+    else:
+        pos_ctrl_param = fntsmc_param()
+        pos_ctrl_param.load_param_from_yaml('~uav0_fntsmc_parameters')
     
     uav_ros = UAV_ROS_Consensus(uav_existance=uav_existance, use_ros_param=True, name='~uav0_parameters')
     uav_ros.connect()
@@ -40,7 +45,12 @@ if __name__ == "__main__":
     obs_xy.load_param_from_yaml('~uav0_obs_xy')
     obs_z = rd3()
     obs_z.load_param_from_yaml('~uav0_obs_z')
-    controller = fntsmc_consensus(pos_ctrl_param)
+    if CONTROLLER == 'RFNTSMC':
+        controller = rfntsmc_consensus(pos_ctrl_param)
+    elif CONTROLLER == 'FT-PD':
+        controller = None
+    else:
+        controller = fntsmc_consensus(pos_ctrl_param)
     data_record = data_collector(N=TOTAL_SEQ)
     ctrl_param_record = None
     '''define controllers and observers'''
@@ -127,7 +137,7 @@ if __name__ == "__main__":
             else:
                 if CONTROLLER == 'RL':
                     ctrl_param_np = np.array(uav_ros.ctrl_param.data).astype(float)
-                    if t_now > t_miemie:  # 前几秒过渡一下
+                    if t_now > 0:  # 前几秒过渡一下
                         controller.get_param_from_actor(ctrl_param_np, update_z=True)
                     # controller.print_param()
                     ctrl_param_record = np.atleast_2d(ctrl_param_np) if ctrl_param_record is None else np.vstack((ctrl_param_record, ctrl_param_np))

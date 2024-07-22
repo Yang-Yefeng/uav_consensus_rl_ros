@@ -11,7 +11,7 @@ pi: 3.1416
 controller: 'RL'
 # controller: 'PX4-PID'
 # controller: 'FT-PD'
-# controller: 'R-FNTSMC'
+# controller: 'RFNTSMC'
 
 test_group: 2
 

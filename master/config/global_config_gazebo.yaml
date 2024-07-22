@@ -5,11 +5,11 @@ use_gazebo: true
 use_obs: true
 uav_existance: [1, 1, 1, 1]
 
-#controller: 'FNTSMC'
+controller: 'FNTSMC'
 pi: 3.1416
-CONTROLLER: 'RL'
-# CONTROLLER: 'PX4-PID'
-# CONTROLLER: 'MPC'
+#controller: 'RL'
+#controller: 'PX4-PID'
+#controller: 'RFNTSMC'
 
 test_group: 2
 

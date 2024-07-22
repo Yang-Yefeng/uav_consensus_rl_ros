@@ -24,6 +24,22 @@ uav3_fntsmc_parameters:
     dim: 3
     dt: 0.01
 
+uav3_rfntsmc_parameters:
+    k1: [1.2, 0.8, 1.5]
+    k2: [0.2, 0.6, 1.5]
+    alpha: [1.2, 1.5, 1.2]
+    beta: [0.3, 0.3, 0.3]
+    gamma: [0.2, 0.2, 0.2]
+    lmd: [2.0, 2.0, 2.0]
+    k_yyf_i: [0.00, 0.00, 0.00]
+    k_yyf_d: [0., 0., 0.]
+    k_yyf_p: [0., 0., 0.0]
+    k_com_pos: [0.0, 0.0, -0.0]
+    k_com_vel: [0.0, 0.0, 0.]
+    k_com_acc: [0.0, 0.0, 0.0]
+    dim: 3
+    dt: 0.01
+
 uav3_obs_xy:
     use_freq: True
     omega: [[1.0, 1.1, 1.2], [1.0, 1.1, 1.2]]

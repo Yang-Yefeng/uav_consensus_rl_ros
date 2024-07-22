@@ -3,6 +3,7 @@ import os, rospy
 
 from control.uav_ros_consensus import UAV_ROS_Consensus
 from control.FNTSMC import fntsmc_param, fntsmc_consensus
+from control.RFNTSMC import rfntsmc_param, rfntsmc_consensus
 from control.observer import robust_differentiator_3rd as rd3
 from control.collector import data_collector
 from control.utils import *
@@ -25,8 +26,12 @@ if __name__ == "__main__":
     # pos0 = rospy.get_param('~uav3_parameters')['pos0']
     '''load some global configuration parameters'''
     
-    pos_ctrl_param = fntsmc_param()
-    pos_ctrl_param.load_param_from_yaml('~uav3_fntsmc_parameters')
+    if CONTROLLER == 'RFNTSMC':
+        pos_ctrl_param = rfntsmc_param()
+        pos_ctrl_param.load_param_from_yaml('~uav3_rfntsmc_parameters')
+    else:
+        pos_ctrl_param = fntsmc_param()
+        pos_ctrl_param.load_param_from_yaml('~uav3_fntsmc_parameters')
     
     uav_ros = UAV_ROS_Consensus(uav_existance=uav_existance, use_ros_param=True, name='~uav3_parameters')
     uav_ros.connect()
@@ -40,7 +45,12 @@ if __name__ == "__main__":
     obs_xy.load_param_from_yaml('~uav3_obs_xy')
     obs_z = rd3()
     obs_z.load_param_from_yaml('~uav3_obs_z')
-    controller = fntsmc_consensus(pos_ctrl_param)
+    if CONTROLLER == 'RFNTSMC':
+        controller = rfntsmc_consensus(pos_ctrl_param)
+    elif CONTROLLER == 'FT-PD':
+        controller = None
+    else:
+        controller = fntsmc_consensus(pos_ctrl_param)
     data_record = data_collector(N=TOTAL_SEQ)
     ctrl_param_record = None
     '''define controllers and observers'''

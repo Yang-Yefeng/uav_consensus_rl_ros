@@ -83,8 +83,7 @@ if __name__ == "__main__":
         center = np.array(_traj['center']).astype(float)
         offset = np.array(_traj['offset']).astype(float)[ID]
         REF, DOT_REF, DOT2_REF = ref_uav_set_point_sequence_with_dead(dt, time_max, t_miemie, center)
-        NU = np.tile(offset, (int((time_max + t_miemie) / dt), 1))
-        DOT_NU = DOT2_NU = np.zeros((int((time_max + t_miemie) / dt), 3))
+        NU, DOT_NU, DOT2_NU = offset_set_point_sequence_with_dead(dt, time_max, t_miemie, offset)
     elif test_group == 3:
         ra = np.array(_traj['ra']).astype(float)
         rp = np.array(_traj['rp']).astype(float)
@@ -105,7 +104,7 @@ if __name__ == "__main__":
     '''define trajectory'''
     
     t0 = rospy.Time.now().to_sec()
-
+    
     uav_ros.pos0 = REF[0][0:3] + NU[0]
 
     while not rospy.is_shutdown():
@@ -171,7 +170,7 @@ if __name__ == "__main__":
                                                           ref=eta_d + nu,
                                                           d_ref=dot_eta_d + dot_nu,
                                                           e_max=1.5,
-                                                          dot_e_max = 1.0)
+                                                          dot_e_max=3.0)
                 
                 phi_d, theta_d, dot_phi_d, dot_theta_d, uf = uav_ros.publish_ctrl_cmd(ctrl=controller.control_out_consensus,
                                                                                       psi_d=psi_d,
@@ -203,17 +202,17 @@ if __name__ == "__main__":
                     os.mkdir(save_path)
                 data_record.package2file(path=save_path)
                 uav_ros.global_flag = 3
-        elif uav_ros.global_flag == 3:  # finish, back to position
+        elif uav_ros.global_flag == 3:  # finish, back to position0
             uav_ros.uav_msg[ID].are_you_ok.data = True
-            uav_ros.pose.pose.position.x = uav_ros.pos0[0]
-            uav_ros.pose.pose.position.y = uav_ros.pos0[1]
-            uav_ros.pose.pose.position.z = uav_ros.pos0[2]
+            uav_ros.pose.pose.position.x = uav_ros.pos0[0] - uav_ros.offset[0]
+            uav_ros.pose.pose.position.y = uav_ros.pos0[1] - uav_ros.offset[1]
+            uav_ros.pose.pose.position.z = uav_ros.pos0[2] - uav_ros.offset[2]
             uav_ros.local_pos_pub.publish(uav_ros.pose)
         else:
             uav_ros.uav_msg[ID].are_you_ok.data = True
-            uav_ros.pose.pose.position.x = uav_ros.pos0[0]
-            uav_ros.pose.pose.position.y = uav_ros.pos0[1]
-            uav_ros.pose.pose.position.z = uav_ros.pos0[2]
+            uav_ros.pose.pose.position.x = uav_ros.pos0[0] - uav_ros.offset[0]
+            uav_ros.pose.pose.position.y = uav_ros.pos0[1] - uav_ros.offset[1]
+            uav_ros.pose.pose.position.z = uav_ros.pos0[2] - uav_ros.offset[2]
             uav_ros.local_pos_pub.publish(uav_ros.pose)
             print('working mode error...')
         uav_ros.uav_msg_publish(ref, dot_ref, nu, dot_nu, dot2_nu, controller.control_out_consensus, observe)

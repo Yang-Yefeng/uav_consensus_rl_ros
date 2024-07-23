@@ -236,6 +236,21 @@ def ref_uav_set_point_sequence_with_dead(dt:float, time_max:float, t_miemie:floa
     return ref, np.zeros((NN, 4)), np.zeros((NN, 4))
 
 
+def offset_set_point_sequence_with_dead(dt: float, time_max: float, t_miemie: float, offset: np.ndarray):
+    _p = offset.shape[0]
+    step = int(time_max / _p / dt)
+    NN = int((time_max + t_miemie) / dt)
+    N = int(t_miemie / dt)
+    ref = None
+    for i in range(_p):
+        if ref is None:
+            ref = np.tile(offset[i], (step, 1))
+        else:
+            ref = np.vstack((ref, np.tile(offset[i], (step, 1))))
+    ref = np.vstack((np.tile(offset[0], (N, 1)), ref))
+    return ref, np.zeros((NN, 3)), np.zeros((NN, 3))
+
+
 def euler_2_quaternion(phi, theta, psi):
     w = C(phi / 2) * C(theta / 2) * C(psi / 2) + S(phi / 2) * S(theta / 2) * S(psi / 2)
     x = S(phi / 2) * C(theta / 2) * C(psi / 2) - C(phi / 2) * S(theta / 2) * S(psi / 2)

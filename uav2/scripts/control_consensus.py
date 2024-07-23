@@ -79,11 +79,11 @@ if __name__ == "__main__":
         REF, DOT_REF, DOT2_REF = ref_uav_sequence_with_dead(dt, time_max, t_miemie, ra, rp, rba, rbp)
         NU, DOT_NU, DOT2_NU = offset_uav_sequence_with_dead(dt, time_max, t_miemie, oa, op, oba, obp)
     elif test_group == 1:
-        sp = np.array(_traj['sp']).astype(float)[ID]
-        REF, DOT_REF, DOT2_REF = ref_uav_set_point_sequence_with_dead(dt, time_max, t_miemie, sp)
-        NU = DOT_NU = DOT2_NU = np.zeros((int((time_max + t_miemie) / dt), 3))
-        # = np.zeros((int((time_max + t_miemie) / dt), 3))
-        # = np.zeros((int((time_max + t_miemie) / dt), 3))
+        center = np.array(_traj['center']).astype(float)
+        offset = np.array(_traj['offset']).astype(float)[ID]
+        REF, DOT_REF, DOT2_REF = ref_uav_set_point_sequence_with_dead(dt, time_max, t_miemie, center)
+        NU = np.tile(offset, (int((time_max + t_miemie) / dt), 1))
+        DOT_NU = DOT2_NU = np.zeros((int((time_max + t_miemie) / dt), 3))
     elif test_group == 3:
         ra = np.array(_traj['ra']).astype(float)
         rp = np.array(_traj['rp']).astype(float)

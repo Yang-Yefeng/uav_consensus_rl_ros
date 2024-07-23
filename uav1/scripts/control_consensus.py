@@ -25,7 +25,6 @@ if __name__ == "__main__":
     CONTROLLER = rospy.get_param('/global_config/controller')
     use_obs = rospy.get_param('/global_config/use_obs')
     uav_existance = rospy.get_param('/global_config/uav_existance')
-    # pos0 = rospy.get_param('~uav1_parameters')['pos0']
     '''load some global configuration parameters'''
     
     if CONTROLLER == 'RFNTSMC':
@@ -41,7 +40,6 @@ if __name__ == "__main__":
     
     print('Approaching...')
     uav_ros.global_flag = 1
-    #sdfsdfssdfsdfsdf
     
     '''define controllers and observers'''
     obs_xy = rd3()
@@ -81,10 +79,11 @@ if __name__ == "__main__":
         REF, DOT_REF, DOT2_REF = ref_uav_sequence_with_dead(dt, time_max, t_miemie, ra, rp, rba, rbp)
         NU, DOT_NU, DOT2_NU = offset_uav_sequence_with_dead(dt, time_max, t_miemie, oa, op, oba, obp)
     elif test_group == 1:
-
-        sp = np.array(_traj['sp']).astype(float)[ID]
-        REF, DOT_REF, DOT2_REF = ref_uav_set_point_sequence_with_dead(dt, time_max, t_miemie, sp)
-        NU = DOT_NU = DOT2_NU = np.zeros((int((time_max + t_miemie) / dt), 3))
+        center = np.array(_traj['center']).astype(float)
+        offset = np.array(_traj['offset']).astype(float)[ID]
+        REF, DOT_REF, DOT2_REF = ref_uav_set_point_sequence_with_dead(dt, time_max, t_miemie, center)
+        NU = np.tile(offset, (int((time_max + t_miemie) / dt), 1))
+        DOT_NU = DOT2_NU = np.zeros((int((time_max + t_miemie) / dt), 3))
     elif test_group == 3:
         ra = np.array(_traj['ra']).astype(float)
         rp = np.array(_traj['rp']).astype(float)
@@ -183,7 +182,6 @@ if __name__ == "__main__":
                                                                                       att_limit=[np.pi / 3, np.pi / 3],
                                                                                       dot_att_limit=[np.pi / 2, np.pi / 2],
                                                                                       use_gazebo=use_gazebo)
-            
             '''5. get new uav states from Gazebo'''
             uav_ros.rk44(action=[phi_d, theta_d, uf], uav_state=uav_odom_2_uav_state(uav_ros.uav_odom))
             

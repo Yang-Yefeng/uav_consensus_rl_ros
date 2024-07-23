@@ -6,6 +6,7 @@ import numpy as np
 from control.uav_ros_consensus import UAV_ROS_Consensus
 from control.FNTSMC import fntsmc_param, fntsmc_consensus
 from control.RFNTSMC import rfntsmc_param, rfntsmc_consensus
+from control.FTPD import ftpd
 from control.observer import robust_differentiator_3rd as rd3
 from control.collector import data_collector
 from control.utils import *
@@ -50,7 +51,10 @@ if __name__ == "__main__":
     if CONTROLLER == 'RFNTSMC':
         controller = rfntsmc_consensus(pos_ctrl_param)
     elif CONTROLLER == 'FT-PD':
-        controller = None
+        controller = ftpd(kp_pos=np.array([5.,5.,5.]),
+                          ki_pos=np.array([0.005, 0.005, 0.005]),
+                          kd_pos=np.array([3.,3.,2.]),
+                          p_v=np.array([0.75, 0.75, 0.8]))
     else:
         controller = fntsmc_consensus(pos_ctrl_param)
     data_record = data_collector(N=TOTAL_SEQ)

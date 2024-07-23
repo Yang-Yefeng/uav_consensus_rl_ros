@@ -169,7 +169,7 @@ if __name__ == "__main__":
                                                           ref=eta_d + nu,
                                                           d_ref=dot_eta_d + dot_nu,
                                                           e_max=1.5,
-                                                          dot_e_max = 3.0)
+                                                          dot_e_max=3.0)
                 
                 phi_d, theta_d, dot_phi_d, dot_theta_d, uf = uav_ros.publish_ctrl_cmd(ctrl=controller.control_out_consensus,
                                                                                       psi_d=psi_d,

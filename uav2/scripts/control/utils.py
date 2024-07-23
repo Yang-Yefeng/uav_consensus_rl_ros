@@ -249,19 +249,6 @@ def offset_set_point_sequence_with_dead(dt: float, time_max: float, t_miemie: fl
             ref = np.vstack((ref, np.tile(offset[i], (step, 1))))
     ref = np.vstack((np.tile(offset[0], (N, 1)), ref))
     return ref, np.zeros((NN, 3)), np.zeros((NN, 3))
-    _p = sp.shape[0]
-    step = int(time_max / _p / dt)
-    NN = int((time_max + t_miemie) / dt)
-    N = int(t_miemie / dt)
-    ref = None
-    for i in range(_p):
-        if ref is None:
-            ref = np.tile(sp[i], (step, 1))
-        else:
-            ref = np.vstack((ref, np.tile(sp[i], (step, 1))))
-    ref = np.vstack((np.tile(sp[0], (N, 1)), ref))
-    # print('哈哈哈', ref.shape)
-    return ref, np.zeros((NN, 4)), np.zeros((NN, 4))
 
 
 def euler_2_quaternion(phi, theta, psi):

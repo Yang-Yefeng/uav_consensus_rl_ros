@@ -167,8 +167,12 @@ if __name__ == "__main__":
                                                           consensus_e=uav_ros.consensus_e,
                                                           consensus_de=uav_ros.consensus_de,
                                                           Lambda_eta=uav_ros.lambda_eta,
-                                                          ref=eta_d + nu,
-                                                          d_ref=dot_eta_d + dot_nu,
+                                                          ref=eta_d,
+                                                          d_ref=dot_eta_d,
+                                                          dd_ref=dot2_eta_d,
+                                                          nu=nu,
+                                                          d_nu=dot_nu,
+                                                          dd_nu=dot2_nu,
                                                           e_max=1.5,
                                                           dot_e_max=3.0)
                 

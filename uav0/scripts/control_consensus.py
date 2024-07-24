@@ -4,6 +4,7 @@ import os, rospy
 from control.uav_ros_consensus import UAV_ROS_Consensus
 from control.FNTSMC import fntsmc_param, fntsmc_consensus
 from control.RFNTSMC import rfntsmc_param, rfntsmc_consensus
+from control.FTPD import ftpd
 from control.observer import robust_differentiator_3rd as rd3
 from control.collector import data_collector
 from control.utils import *
@@ -151,9 +152,9 @@ if __name__ == "__main__":
             
             '''3. Update the parameters of FNTSMC if RL is used'''
             if CONTROLLER == 'PX4-PID':
-                uav_ros.pose.pose.position.x = ref[0]
-                uav_ros.pose.pose.position.y = ref[1]
-                uav_ros.pose.pose.position.z = ref[2]
+                uav_ros.pose.pose.position.x = ref[0] + nu[0]
+                uav_ros.pose.pose.position.y = ref[1] + nu[1]
+                uav_ros.pose.pose.position.z = ref[2] + nu[2]
                 uav_ros.local_pos_pub.publish(uav_ros.pose)
                 phi_d, theta_d, uf = 0., 0., 0.
             else:

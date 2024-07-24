@@ -4,6 +4,7 @@ import os, rospy
 from control.uav_ros_consensus import UAV_ROS_Consensus
 from control.FNTSMC import fntsmc_param, fntsmc_consensus
 from control.RFNTSMC import rfntsmc_param, rfntsmc_consensus
+from control.FTPD import ftpd
 from control.observer import robust_differentiator_3rd as rd3
 from control.collector import data_collector
 from control.utils import *
@@ -152,9 +153,9 @@ if __name__ == "__main__":
             
             '''3. Update the parameters of FNTSMC if RL is used'''
             if CONTROLLER == 'PX4-PID':
-                uav_ros.pose.pose.position.x = ref[0]
-                uav_ros.pose.pose.position.y = ref[1]
-                uav_ros.pose.pose.position.z = ref[2]
+                uav_ros.pose.pose.position.x = ref[0] + nu[0]
+                uav_ros.pose.pose.position.y = ref[1] + nu[1]
+                uav_ros.pose.pose.position.z = ref[2] + nu[2]
                 uav_ros.local_pos_pub.publish(uav_ros.pose)
                 phi_d, theta_d, uf = 0., 0., 0.
             else:
@@ -171,10 +172,14 @@ if __name__ == "__main__":
                                                           consensus_e=uav_ros.consensus_e,
                                                           consensus_de=uav_ros.consensus_de,
                                                           Lambda_eta=uav_ros.lambda_eta,
-                                                          ref=eta_d + nu,
-                                                          d_ref=dot_eta_d + dot_nu,
+                                                          ref=eta_d,
+                                                          d_ref=dot_eta_d,
+                                                          dd_ref=dot2_eta_d,
+                                                          nu=nu,
+                                                          d_nu=dot_nu,
+                                                          dd_nu=dot2_nu,
                                                           e_max=0.5,
-                                                          dot_e_max = 1.0)
+                                                          dot_e_max=1.0)
                 
                 phi_d, theta_d, dot_phi_d, dot_theta_d, uf = uav_ros.publish_ctrl_cmd(ctrl=controller.control_out_consensus,
                                                                                       psi_d=psi_d,

@@ -51,9 +51,9 @@ if __name__ == "__main__":
     if CONTROLLER == 'RFNTSMC':
         controller = rfntsmc_consensus(pos_ctrl_param)
     elif CONTROLLER == 'FT-PD':
-        controller = ftpd(kp_pos=np.array([5.,5.,7.2]),
-                          ki_pos=np.array([0.005, 0.005, 0.2]),
-                          kd_pos=np.array([3.,3.,2.5]),
+        controller = ftpd(kp_pos=np.array([5.,5.,7.5]),
+                          ki_pos=np.array([0.005, 0.005, 0.4]),
+                          kd_pos=np.array([3.,3.,3]),
                           p_v=np.array([0.75, 0.75, 0.8]))
     else:
         controller = fntsmc_consensus(pos_ctrl_param)
@@ -175,8 +175,8 @@ if __name__ == "__main__":
                                                           nu=nu,
                                                           d_nu=dot_nu,
                                                           dd_nu=dot2_nu,
-                                                          e_max=0.5,
-                                                          dot_e_max = 1.0)
+                                                          e_max=1.5,
+                                                          dot_e_max=2.0)
                 
                 phi_d, theta_d, dot_phi_d, dot_theta_d, uf = uav_ros.publish_ctrl_cmd(ctrl=controller.control_out_consensus,
                                                                                       psi_d=psi_d,

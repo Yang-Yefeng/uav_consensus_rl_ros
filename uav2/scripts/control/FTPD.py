@@ -86,7 +86,7 @@ class ftpd(object):
         self.err_p_pos = - consensus_e.clip(np.array([-0.5, -0.5, -1]), np.array([0.5, 0.5, 1]))
 
         for i in range(3):
-            self.err_i_pos[i] = self.err_i_pos[i] * 1 + abs(self.err_p_pos[i].clip(-0.03, 0.03)) ** self.p_v[i] * np.sign(40 * self.err_p_pos[i]) * self.dt
+            self.err_i_pos[i] = self.err_i_pos[i] * 1 + abs(self.err_p_pos[i].clip(-0.3, 0.3)) ** self.p_v[i] * np.sign(40 * self.err_p_pos[i]) * self.dt
             # self.err_i_pos += self.err_p_pos * self.dt 
 
         self.err_d_pos = - consensus_de

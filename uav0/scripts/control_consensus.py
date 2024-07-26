@@ -50,8 +50,8 @@ if __name__ == "__main__":
         controller = rfntsmc_consensus(pos_ctrl_param)
     elif CONTROLLER == 'FT-PD':
         controller = ftpd(kp_pos=np.array([5.,5.,7.5]),
-                          ki_pos=np.array([0.005, 0.005, 0.3]),
-                          kd_pos=np.array([3.,3.,2.5]),
+                          ki_pos=np.array([0.005, 0.005, 0.4]),
+                          kd_pos=np.array([3.,3.,3]),
                           p_v=np.array([0.75, 0.75, 0.8]))
     else:
         controller = fntsmc_consensus(pos_ctrl_param)

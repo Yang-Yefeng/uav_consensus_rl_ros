@@ -289,7 +289,7 @@ def thrust_2_throttle(thrust: float, use_gazebo: bool):
     if use_gazebo:
         k = 0.56 / 1.5 / 9.8
     else:
-        k = 0.33 / 0.722 / 9.8
+        k = 0.31 / 0.722 / 9.8
     _throttle = max(min(k * thrust, 0.9), 0.10)
     '''线性模型'''
     return _throttle

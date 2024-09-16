@@ -23,7 +23,7 @@ def plot_pos_consensus():
         # plt.yticks(np.arange(-2, 2, 0.5))
         plt.xlabel('time(s)')
         plt.title('X')
-    
+        
         plt.subplot(n, 3, i * 3 + 2)
         plt.plot(time, ref_pos[:, 1], 'red')
         plt.plot(time, uav_pos[:, 1], 'blue')
@@ -34,7 +34,7 @@ def plot_pos_consensus():
         # plt.yticks(np.arange(-2, 2, 0.5))
         plt.xlabel('time(s)')
         plt.title('Y')
-    
+        
         plt.subplot(n, 3, i * 3 + 3)
         plt.plot(time, ref_pos[:, 2], 'red')
         plt.plot(time, uav_pos[:, 2] + 0.00, 'blue')
@@ -66,7 +66,7 @@ def plot_att_consensus():
         plt.xlabel('time(s)')
         if i == 0:
             plt.title('Roll  $\phi$')
-            
+        
         plt.subplot(n, 3, i * 3 + 2)
         plt.plot(time, ref_angle[:, 1], 'red')
         plt.plot(time, uav_angle[:, 1], 'blue')
@@ -135,7 +135,7 @@ def plot_obs_consensus():
         if i == 0:
             plt.title('observe dx')
         # plt.ylim((-4, 4))
-    
+        
         plt.subplot(n, 3, 3 * i + 2)
         plt.plot(time, delta_obs[:, 1], 'red')
         plt.grid(True)
@@ -143,7 +143,7 @@ def plot_obs_consensus():
         # plt.ylim((-4, 4))
         if i == 0:
             plt.title('observe dy')
-    
+        
         plt.subplot(n, 3, 3 * i + 3)
         plt.plot(time, delta_obs[:, 2], 'red')
         plt.grid(True)
@@ -182,7 +182,7 @@ if __name__ == '__main__':
     plot_pos_consensus()
     # plot_att_consensus()
     # plot_thrust_consensus()
-    plot_throttle_consensus()
-    plot_obs_consensus()
-
+    # plot_throttle_consensus()
+    # plot_obs_consensus()
+    
     plt.show()

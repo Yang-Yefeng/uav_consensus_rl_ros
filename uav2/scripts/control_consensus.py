@@ -4,6 +4,7 @@ import os, rospy
 from control.uav_ros_consensus import UAV_ROS_Consensus
 from control.FNTSMC import fntsmc_param, fntsmc_consensus
 from control.RFNTSMC import rfntsmc_param, rfntsmc_consensus
+from control.FTPD import ftpd
 from control.observer import robust_differentiator_3rd as rd3
 from control.collector import data_collector
 from control.utils import *
@@ -49,7 +50,10 @@ if __name__ == "__main__":
     if CONTROLLER == 'RFNTSMC':
         controller = rfntsmc_consensus(pos_ctrl_param)
     elif CONTROLLER == 'FT-PD':
-        controller = None
+        controller = ftpd(kp_pos=np.array([2., 2., 2.5]),
+                          ki_pos=np.array([0.005, 0.005, 0.4]),
+                          kd_pos=np.array([3., 3., 3.]),
+                          p_v=np.array([0.75, 0.75, 0.8]))
     else:
         controller = fntsmc_consensus(pos_ctrl_param)
     data_record = data_collector(N=TOTAL_SEQ)
@@ -102,7 +106,7 @@ if __name__ == "__main__":
         NU = DOT_NU = DOT2_NU = np.zeros((_n, 3))
     
     t0 = rospy.Time.now().to_sec()
-
+    
     uav_ros.pos0 = REF[0][0:3] + NU[0]
     
     while not rospy.is_shutdown():
@@ -117,20 +121,22 @@ if __name__ == "__main__":
         if uav_ros.global_flag == 1:  # approaching
             okk = uav_ros.approaching()
             if okk:
-                uav_ros.uav_msg[ID].are_you_ok.data = True
+                uav_ros.uav_msg[2].are_you_ok.data = True
             else:
-                uav_ros.uav_msg[ID].are_you_ok.data = False
+                uav_ros.uav_msg[2].are_you_ok.data = False
             if okk and uav_ros.check_other_uav_ok():
                 uav_ros.global_flag = 2
             t0 = rospy.Time.now().to_sec()
         elif uav_ros.global_flag == 2:  # control
-            uav_ros.uav_msg[ID].are_you_ok.data = True
+            uav_ros.uav_msg[2].are_you_ok.data = True
             t_now = round(t - t0, 4)
             if uav_ros.n % 100 == 0:
                 print('time: ', t_now)
             
             '''2. generate outer-loop reference signal 'eta_d' and its 1st, 2nd derivatives'''
             eta_d, dot_eta_d, dot2_eta_d = ref[0: 3], dot_ref[0: 3], dot2_ref[0: 3]
+            # e = uav_ros.eta() - eta_d
+            # de = uav_ros.dot_eta() - dot_eta_d
             psi_d = ref[3]
             
             syst_dynamic = -uav_ros.kt / uav_ros.m * uav_ros.dot_eta() + uav_ros.A()
@@ -147,9 +153,9 @@ if __name__ == "__main__":
             
             '''3. Update the parameters of FNTSMC if RL is used'''
             if CONTROLLER == 'PX4-PID':
-                uav_ros.pose.pose.position.x = ref[0]
-                uav_ros.pose.pose.position.y = ref[1]
-                uav_ros.pose.pose.position.z = ref[2]
+                uav_ros.pose.pose.position.x = ref[0] + nu[0]
+                uav_ros.pose.pose.position.y = ref[1] + nu[1]
+                uav_ros.pose.pose.position.z = ref[2] + nu[2]
                 uav_ros.local_pos_pub.publish(uav_ros.pose)
                 phi_d, theta_d, uf = 0., 0., 0.
             else:
@@ -166,10 +172,14 @@ if __name__ == "__main__":
                                                           consensus_e=uav_ros.consensus_e,
                                                           consensus_de=uav_ros.consensus_de,
                                                           Lambda_eta=uav_ros.lambda_eta,
-                                                          ref=eta_d + nu,
-                                                          d_ref=dot_eta_d + dot_nu,
-                                                          e_max=1.5,
-                                                          dot_e_max=3.0)
+                                                          ref=eta_d,
+                                                          d_ref=dot_eta_d,
+                                                          dd_ref=dot2_eta_d,
+                                                          nu=nu,
+                                                          d_nu=dot_nu,
+                                                          dd_nu=dot2_nu,
+                                                          e_max=0.5,
+                                                          dot_e_max=1.0)
                 
                 phi_d, theta_d, dot_phi_d, dot_theta_d, uf = uav_ros.publish_ctrl_cmd(ctrl=controller.control_out_consensus,
                                                                                       psi_d=psi_d,
@@ -203,16 +213,16 @@ if __name__ == "__main__":
                 data_record.package2file(path=save_path)
                 uav_ros.global_flag = 3
         elif uav_ros.global_flag == 3:  # finish, back to position
-            uav_ros.uav_msg[ID].are_you_ok.data = True
-            uav_ros.pose.pose.position.x = uav_ros.pos0[0] - uav_ros.offset[0]
-            uav_ros.pose.pose.position.y = uav_ros.pos0[1] - uav_ros.offset[1]
-            uav_ros.pose.pose.position.z = uav_ros.pos0[2] - uav_ros.offset[2]
+            uav_ros.uav_msg[2].are_you_ok.data = True
+            uav_ros.pose.pose.position.x = uav_ros.pos0[0]
+            uav_ros.pose.pose.position.y = uav_ros.pos0[1]
+            uav_ros.pose.pose.position.z = uav_ros.pos0[2]
             uav_ros.local_pos_pub.publish(uav_ros.pose)
         else:
-            uav_ros.uav_msg[ID].are_you_ok.data = True
-            uav_ros.pose.pose.position.x = uav_ros.pos0[0] - uav_ros.offset[0]
-            uav_ros.pose.pose.position.y = uav_ros.pos0[1] - uav_ros.offset[1]
-            uav_ros.pose.pose.position.z = uav_ros.pos0[2] - uav_ros.offset[2]
+            uav_ros.uav_msg[2].are_you_ok.data = True
+            uav_ros.pose.pose.position.x = uav_ros.pos0[0]
+            uav_ros.pose.pose.position.y = uav_ros.pos0[1]
+            uav_ros.pose.pose.position.z = uav_ros.pos0[2]
             uav_ros.local_pos_pub.publish(uav_ros.pose)
             print('working mode error...')
         uav_ros.uav_msg_publish(ref, dot_ref, nu, dot_nu, dot2_nu, controller.control_out_consensus, observe)

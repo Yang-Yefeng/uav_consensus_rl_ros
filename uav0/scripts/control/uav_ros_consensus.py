@@ -211,6 +211,15 @@ class UAV_ROS_Consensus:
         self.consensus_de = dot_e1 - dot_Lambda
     
     def cal_Lambda_eta(self, dot2_eat_d: np.ndarray, dot2_nu: np.ndarray, obs: np.ndarray):     # TODO
+        # lambda_eta = -self.b * dot2_eat_d + (self.d + self.b) * (-self.kt / self.m * self.dot_eta() + obs - dot2_nu)
+        # le1 = self.adj[0] * (np.array(self.uav_msg[0].second_order_dynamic) - np.array(self.uav_msg[0].dot2_nu))
+        # le2 = self.adj[1] * (np.array(self.uav_msg[1].second_order_dynamic) - np.array(self.uav_msg[1].dot2_nu)) \
+        #     if self.uav_existance[1] == 1 else np.zeros(3)
+        # le3 = self.adj[2] * (np.array(self.uav_msg[2].second_order_dynamic) - np.array(self.uav_msg[2].dot2_nu)) \
+        #     if self.uav_existance[2] == 1 else np.zeros(3)
+        # le4 = self.adj[3] * (np.array(self.uav_msg[3].second_order_dynamic) - np.array(self.uav_msg[3].dot2_nu)) \
+        #     if self.uav_existance[3] == 1 else np.zeros(3)
+        # lambda_eta -= le1 + le2 + le3 + le4
         lambda_eta = self.b * dot2_eat_d + (self.d + self.b) * dot2_nu
         le1 = self.adj[0] * (np.array(self.uav_msg[0].second_order_dynamic) - np.array(self.uav_msg[0].dot2_nu))
         le2 = self.adj[1] * (np.array(self.uav_msg[1].second_order_dynamic) - np.array(self.uav_msg[1].dot2_nu)) \
@@ -287,6 +296,8 @@ class UAV_ROS_Consensus:
         
         self.set_state(uav_odom_2_uav_state(self.uav_odom))
         self.local_pos_pub.publish(self.pose)
+        # print('pos0: ', self.pos0)
+        # print('pos : ', self.pos)
         if ((np.linalg.norm(self.pos0 - self.pos) < 0.3) and  # 位置误差
                 (np.linalg.norm(self.vel) < 0.2) and  # 速度
                 (np.linalg.norm(self.att[2]) < deg2rad(5))):  # 偏航角

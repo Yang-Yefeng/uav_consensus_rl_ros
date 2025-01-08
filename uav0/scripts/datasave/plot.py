@@ -147,7 +147,7 @@ if __name__ == '__main__':
     # plot_theta()
     # plot_psi()
     # # plot_throttle()
-    # plot_thrust()
+    plot_thrust()
     plot_obs()
 
     plt.show()

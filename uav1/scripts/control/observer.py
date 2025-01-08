@@ -154,14 +154,6 @@ class predefined_time_do:
 		self.b2 = (1 - self.alpha) / (2 ** (self.alpha - 1))
 		self.b3 = (2 - self.alpha) / (3 - self.alpha) * haha ** (1 - self.alpha)
 		
-		# self.a1 = 0.5 * np.ones(self.dim)
-		# self.a2 = 2 ** (-self.alpha)
-		# self.a3 = 0.5 * np.ones(self.dim)
-		#
-		# self.b1 = 1 * np.ones(self.dim)
-		# self.b2 = (1 - self.alpha) / (2 ** (self.alpha - 1))
-		# self.b3 = (2 - self.alpha) / (3 - self.alpha)
-		
 		a1s = (1 - self.alpha * self.k1) / (2 - 2 * self.alpha)
 		a2s = self.k1 - a1s
 		self.k0 = gamma(a1s) * gamma(a2s) / gamma(self.k1) / (2 - 2 * self.alpha) / self.beta2 ** self.k1 * (self.beta2 / self.beta3) ** a1s / self.T0
@@ -186,7 +178,19 @@ class predefined_time_do:
 		self.rec_sigma = np.empty(shape=[0, 3], dtype=float)
 		self.rec_delta = np.empty(shape=[0, 3], dtype=float)
 		'''data record'''
-	
+		
+	def load_param_from_yaml(self, name: str):
+		_p = rospy.get_param(name)
+		T0 = np.array(_p['T0']).astype(float)
+		k1 = np.array(_p['k1']).astype(float)
+		beta1 = np.array(_p['beta1']).astype(float)
+		beta2 = np.array(_p['beta2']).astype(float)
+		beta3 = np.array(_p['beta3']).astype(float)
+		alpha = np.array(_p['alpha']).astype(float)
+		dim = int(_p['dim'])
+		dt = _p['dt']
+		self.__init__(T0=T0, k1=k1, alpha=alpha, beta1=beta1, beta2=beta2, beta3=beta3, dim=dim, dt=dt)
+		
 	@staticmethod
 	def sig(x: Union[np.ndarray, list], a, kt=5):
 		return np.fabs(x) ** a * np.tanh(kt * x)

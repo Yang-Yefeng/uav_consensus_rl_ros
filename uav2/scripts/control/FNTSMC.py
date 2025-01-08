@@ -216,7 +216,7 @@ class fntsmc_consensus(fntsmc):
         
         s = (consensus_de + self.k_com_vel * d_ref) + self.k1 * (consensus_e + self.k_com_pos * ref) + self.k2 * self.sig(consensus_e + self.k_com_pos * ref, self.alpha1)
         sigma = (self.k1 + self.k2 * self.alpha1 * self.sig(consensus_e + self.k_com_pos * ref, self.alpha1 - 1)) * (consensus_de + self.k_com_vel * d_ref)
-        u1 = Lambda_eta + sigma
+        u1 = -Lambda_eta + sigma
         u2 = self.k3 * np.tanh(5 * s) + self.k4 * self.sig(s, self.alpha2)
         
         self.yyf_i += self.k_yyf_i * consensus_e

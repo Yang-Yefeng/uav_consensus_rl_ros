@@ -186,15 +186,6 @@ class UAV_ROS_Consensus:
         self.uav_msg[2] = msg
     
     def cal_consensus_e(self, nu: np.ndarray, eta_d: np.ndarray):
-        # l1 = np.zeros(3)    # 它自己
-        # l2 = self.adj[1] * (self.eta() - nu - self.uav_msg[1].eta + self.uav_msg[1].nu) \
-        #     if self.uav_existance[1] == 1 else np.zeros(3)
-        # l3 = self.adj[2] * (self.eta() - nu - self.uav_msg[2].eta + self.uav_msg[2].nu) \
-        #     if self.uav_existance[2] == 1 else np.zeros(3)
-        # l4 = self.adj[3] * (self.eta() - nu - self.uav_msg[3].eta + self.uav_msg[3].nu) \
-        #     if self.uav_existance[3] == 1 else np.zeros(3)
-        # self.consensus_e = l1 + l2 + l3 + l4 + self.b * (self.eta() - eta_d - nu)
-        
         e1 = (self.d + self.b) * (self.eta() - nu) - self.b * eta_d
         
         l1 = self.adj[0] * (np.array(self.uav_msg[0].eta) - np.array(self.uav_msg[0].nu)) \
@@ -208,15 +199,6 @@ class UAV_ROS_Consensus:
         self.consensus_e = e1 - Lambda
     
     def cal_consensus_de(self, dot_nu: np.ndarray, dot_eta_d: np.ndarray):
-        # dl1 = np.zeros(3)
-        # dl2 = self.adj[1] * (np.array(self.uav_msg[1].dot_eta) - np.array(self.uav_msg[1].dot_nu)) \
-        #     if self.uav_existance[1] == 1 else np.zeros(3)
-        # dl3 = self.adj[2] * (np.array(self.uav_msg[2].dot_eta) - np.array(self.uav_msg[2].dot_nu)) \
-        #     if self.uav_existance[2] == 1 else np.zeros(3)
-        # dl4 = self.adj[3] * (np.array(self.uav_msg[3].dot_eta) - np.array(self.uav_msg[3].dot_nu)) \
-        #     if self.uav_existance[3] == 1 else np.zeros(3)
-        # self.consensus_de = dl1 + dl2 + dl3 + dl4 + self.b * (self.dot_eta() - dot_eta_d - dot_nu)
-        
         dot_e1 = (self.d + self.b) * (self.dot_eta() - dot_nu) - self.b * dot_eta_d
         dl1 = self.adj[0] * (np.array(self.uav_msg[0].dot_eta) - np.array(self.uav_msg[0].dot_nu)) \
             if self.uav_existance[0] == 1 else np.zeros(3)
@@ -230,19 +212,15 @@ class UAV_ROS_Consensus:
         self.consensus_de = dot_e1 - dot_Lambda
     
     def cal_Lambda_eta(self, dot2_eat_d: np.ndarray, dot2_nu: np.ndarray, obs: np.ndarray):
-        lambda_eta = -self.b * dot2_eat_d + (self.d + self.b) * (-self.kt / self.m * self.dot_eta() + obs - dot2_nu)
-        le1 = self.adj[0] * (np.array(self.uav_msg[0].second_order_dynamic) - np.array(self.uav_msg[0].dot2_nu)) \
-            if self.uav_existance[0] == 1 else np.zeros(3)
+        lambda_eta = self.b * dot2_eat_d + (self.d + self.b) * dot2_nu
+        le1 = self.adj[0] * (np.array(self.uav_msg[0].second_order_dynamic) - np.array(self.uav_msg[0].dot2_nu))
         le2 = self.adj[1] * (np.array(self.uav_msg[1].second_order_dynamic) - np.array(self.uav_msg[1].dot2_nu)) \
             if self.uav_existance[1] == 1 else np.zeros(3)
         le3 = self.adj[2] * (np.array(self.uav_msg[2].second_order_dynamic) - np.array(self.uav_msg[2].dot2_nu)) \
             if self.uav_existance[2] == 1 else np.zeros(3)
-        le4 = self.adj[3] * (np.array(self.uav_msg[3].second_order_dynamic) - np.array(self.uav_msg[3].dot2_nu))
-        # lambda_eta -= (self.adj[0] * (np.array(self.uav_msg_0.second_order_dynamic) - np.array(self.uav_msg_0.dot2_nu)) +
-        #                self.adj[1] * (np.array(self.uav_msg_1.second_order_dynamic) - np.array(self.uav_msg_1.dot2_nu)) +
-        #                self.adj[2] * (np.array(self.uav_msg_2.second_order_dynamic) - np.array(self.uav_msg_2.dot2_nu)) +
-        #                self.adj[3] * (np.array(self.uav_msg_3.second_order_dynamic) - np.array(self.uav_msg_3.dot2_nu)))
-        lambda_eta -= le1 + le2 + le3 + le4
+        le4 = self.adj[3] * (np.array(self.uav_msg[3].second_order_dynamic) - np.array(self.uav_msg[3].dot2_nu)) \
+            if self.uav_existance[3] == 1 else np.zeros(3)
+        lambda_eta += le1 + le2 + le3 + le4
         self.lambda_eta = lambda_eta.copy()
     
     def check_other_uav_ok(self):

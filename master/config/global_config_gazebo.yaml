@@ -1,7 +1,7 @@
 t_miemie: 5
 dt: 0.01
 time_max: 30.0
-use_gazebo: false
+use_gazebo: true
 use_obs: true
 uav_existance: [1, 1, 1, 1]
 
@@ -10,7 +10,8 @@ pi: 3.1416
 #controller: 'FNTSMC'
 #controller: 'RL'
 #controller: 'PX4-PID'
-controller: 'FT-PD'
+#controller: 'FT-PD'
+controller: 'PDT-FNTSMC'
 #controller: 'RFNTSMC'
 
 test_group: 3

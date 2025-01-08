@@ -20,16 +20,16 @@
             #- SecondTracker
         </rosparam>
 
-        <remap from="/vrpn_client_node/gh034_charlie/pose" to="/uav0/mavros/vision_pose/pose" />
-        <remap from="/vrpn_client_node/gh034_charlie/twist" to="/uav0/mavros/vision_speed/speed_vector" />
+        <remap from="/vrpn_client_node/gh034_alpha/pose" to="/uav0/mavros/vision_pose/pose" />
+        <remap from="/vrpn_client_node/gh034_alpha/twist" to="/uav0/mavros/vision_speed/speed_vector" />
 
-        <remap from="/vrpn_client_node/gh034_delta/pose" to="/uav1/mavros/vision_pose/pose" />
-        <remap from="/vrpn_client_node/gh034_delta/twist" to="/uav1/mavros/vision_speed/speed_vector" />
+        <remap from="/vrpn_client_node/gh034_bravo/pose" to="/uav1/mavros/vision_pose/pose" />
+        <remap from="/vrpn_client_node/gh034_bravo/twist" to="/uav1/mavros/vision_speed/speed_vector" />
 
-        <remap from="/vrpn_client_node/gh034_bravo/pose" to="/uav2/mavros/vision_pose/pose" />
-        <remap from="/vrpn_client_node/gh034_bravo/twist" to="/uav2/mavros/vision_speed/speed_vector" />
+        <remap from="/vrpn_client_node/gh034_charlie/pose" to="/uav2/mavros/vision_pose/pose" />
+        <remap from="/vrpn_client_node/gh034_charlie/twist" to="/uav2/mavros/vision_speed/speed_vector" />
 
-        <remap from="/vrpn_client_node/gh034_alpha/pose" to="/uav3/mavros/vision_pose/pose" />
-        <remap from="/vrpn_client_node/gh034_alpha/twist" to="/uav3/mavros/vision_speed/speed_vector" />
+        <remap from="/vrpn_client_node/gh034_delta/pose" to="/uav3/mavros/vision_pose/pose" />
+        <remap from="/vrpn_client_node/gh034_delta/twist" to="/uav3/mavros/vision_speed/speed_vector" />
     </node>
 </launch>

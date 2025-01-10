@@ -41,14 +41,14 @@
     <option name="hideEmptyMiddlePackages" value="true" />
     <option name="showLibraryContents" value="true" />
   </component>
-  <component name="PropertiesComponent"><![CDATA[{
-  "keyToString": {
-    "Python.plot_consensus.executor": "Run",
-    "RunOnceActivity.ShowReadmeOnStart": "true",
-    "git-widget-placeholder": "charlie",
-    "last_opened_file_path": "/home/yefeng/yefengGithub/uav_consensus_rl_ros/src/uav_consensus_rl_ros/uav0"
+  <component name="PropertiesComponent">{
+  &quot;keyToString&quot;: {
+    &quot;Python.plot_consensus.executor&quot;: &quot;Run&quot;,
+    &quot;RunOnceActivity.ShowReadmeOnStart&quot;: &quot;true&quot;,
+    &quot;git-widget-placeholder&quot;: &quot;charlie&quot;,
+    &quot;last_opened_file_path&quot;: &quot;/home/yefeng/yefengGithub/uav_consensus_rl_ros/src/uav_consensus_rl_ros/uav0&quot;
   }
-}]]></component>
+}</component>
   <component name="RecentsManager">
     <key name="CopyFile.RECENT_KEYS">
       <recent name="$PROJECT_DIR$/uav0" />

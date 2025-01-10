@@ -1,6 +1,6 @@
 <launch>
-  <arg name="vicon_server" default="192.168.50.183"/>
-  <arg name="drone_name" default="gh034_charlie" />
+  <arg name="vicon_server" default="192.168.10.1"/>
+  <arg name="drone_name" default="gh034_alpha" />
   <param name="drone_name" value="$(arg drone_name)" />
 
   <node pkg="vrpn_client_ros" type="vrpn_client_node" name="vrpn_client_node" output="screen">

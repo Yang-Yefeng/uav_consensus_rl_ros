@@ -3,7 +3,7 @@ uav2_parameters:
     b: 0
     d: 1
     m: 0.722
-    pos0: [1.5, 1.5, 1.0]
+    pos0: [1.5, 1.5, 0.5]
     offset: [0., 0., 0.]
     dt: 0.01
     group: '/uav2'

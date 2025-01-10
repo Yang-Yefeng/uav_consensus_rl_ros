@@ -3,11 +3,14 @@ import os, rospy
 
 from control.uav_ros_consensus import UAV_ROS_Consensus
 from control.FNTSMC import fntsmc_param, fntsmc_consensus
+from control.RFNTSMC import rfntsmc_param, rfntsmc_consensus
+from control.FTPD import ftpd
 from control.observer import robust_differentiator_3rd as rd3
 from control.collector import data_collector
 from control.utils import *
 
 cur_ws = os.path.dirname(os.path.abspath(__file__)) + '/../../'
+ID = 1
 
 if __name__ == "__main__":
     rospy.init_node("uav1_control_consensus")
@@ -25,8 +28,12 @@ if __name__ == "__main__":
     # pos0 = rospy.get_param('~uav1_parameters')['pos0']
     '''load some global configuration parameters'''
     
-    pos_ctrl_param = fntsmc_param()
-    pos_ctrl_param.load_param_from_yaml('~uav1_fntsmc_parameters')
+    if CONTROLLER == 'RFNTSMC':
+        pos_ctrl_param = rfntsmc_param()
+        pos_ctrl_param.load_param_from_yaml('~uav1_rfntsmc_parameters')
+    else:
+        pos_ctrl_param = fntsmc_param()
+        pos_ctrl_param.load_param_from_yaml('~uav1_fntsmc_parameters')
     
     uav_ros = UAV_ROS_Consensus(uav_existance=uav_existance, use_ros_param=True, name='~uav1_parameters')
     uav_ros.connect()
@@ -34,14 +41,22 @@ if __name__ == "__main__":
     
     print('Approaching...')
     uav_ros.global_flag = 1
-    #sdfsdfssdfsdfsdf
+    # sdfsdfssdfsdfsdf
     
     '''define controllers and observers'''
     obs_xy = rd3()
     obs_xy.load_param_from_yaml('~uav1_obs_xy')
     obs_z = rd3()
     obs_z.load_param_from_yaml('~uav1_obs_z')
-    controller = fntsmc_consensus(pos_ctrl_param)
+    if CONTROLLER == 'RFNTSMC':
+        controller = rfntsmc_consensus(pos_ctrl_param)
+    elif CONTROLLER == 'FT-PD':
+        controller = ftpd(kp_pos=np.array([2., 2., 2.5]),
+                          ki_pos=np.array([0.005, 0.005, 0.4]),
+                          kd_pos=np.array([3., 3., 3]),
+                          p_v=np.array([0.75, 0.75, 0.8]))
+    else:
+        controller = fntsmc_consensus(pos_ctrl_param)
     data_record = data_collector(N=TOTAL_SEQ)
     ctrl_param_record = None
     '''define controllers and observers'''
@@ -54,27 +69,47 @@ if __name__ == "__main__":
     else:
         _s = 'else'
     _traj = rospy.get_param('/global_config/trajectory_' + _s)
-    ra = np.array(_traj['ra']).astype(float)
-    rp = np.array(_traj['rp']).astype(float)
-    rba = np.array(_traj['rba']).astype(float)
-    rbp = np.array(_traj['rbp']).astype(float)
-
-    oa = np.array(_traj['oa']).astype(float)[1]
-    op = np.array(_traj['op']).astype(float)[1]
-    oba = np.array(_traj['oba']).astype(float)[1]
-    obp = np.array(_traj['obp']).astype(float)[1]
-    '''define trajectory'''
     
-    if test_group == 3:
-        REF, DOT_REF, DOT2_REF = ref_uav_sequence_Bernoulli_with_dead(dt, time_max, t_miemie, ra, rp, rba, rbp)
-    else:
+    if test_group == 0 or test_group == 2:
+        ra = np.array(_traj['ra']).astype(float)
+        rp = np.array(_traj['rp']).astype(float)
+        rba = np.array(_traj['rba']).astype(float)
+        rbp = np.array(_traj['rbp']).astype(float)
+        
+        oa = np.array(_traj['oa']).astype(float)[ID]
+        op = np.array(_traj['op']).astype(float)[ID]
+        oba = np.array(_traj['oba']).astype(float)[ID]
+        obp = np.array(_traj['obp']).astype(float)[ID]
+        
         REF, DOT_REF, DOT2_REF = ref_uav_sequence_with_dead(dt, time_max, t_miemie, ra, rp, rba, rbp)
-    NU, DOT_NU, DOT2_NU = offset_uav_sequence_with_dead(dt, time_max, t_miemie, oa, op, oba, obp)
+        NU, DOT_NU, DOT2_NU = offset_uav_sequence_with_dead(dt, time_max, t_miemie, oa, op, oba, obp)
+    elif test_group == 1:
+        center = np.array(_traj['center']).astype(float)
+        offset = np.array(_traj['offset']).astype(float)[ID]
+        REF, DOT_REF, DOT2_REF = ref_uav_set_point_sequence_with_dead(dt, time_max, t_miemie, center)
+        NU, DOT_NU, DOT2_NU = offset_set_point_sequence_with_dead(dt, time_max, t_miemie, offset)
+    elif test_group == 3:
+        ra = np.array(_traj['ra']).astype(float)
+        rp = np.array(_traj['rp']).astype(float)
+        rba = np.array(_traj['rba']).astype(float)
+        rbp = np.array(_traj['rbp']).astype(float)
+        
+        oa = np.array(_traj['oa']).astype(float)[ID]
+        op = np.array(_traj['op']).astype(float)[ID]
+        oba = np.array(_traj['oba']).astype(float)[ID]
+        obp = np.array(_traj['obp']).astype(float)[ID]
+        REF, DOT_REF, DOT2_REF = ref_uav_sequence_Bernoulli_with_dead(dt, time_max, t_miemie, ra, rp, rba, rbp)
+        NU, DOT_NU, DOT2_NU = offset_uav_sequence_with_dead(dt, time_max, t_miemie, oa, op, oba, obp)
+    else:
+        _n = int((time_max + t_miemie) / dt)
+        REF = np.tile([1.0, 0., 1.0, 0.], (_n, 1))
+        DOT_REF = DOT2_REF = np.zeros((_n, 4))
+        NU = DOT_NU = DOT2_NU = np.zeros((_n, 3))
     
     t0 = rospy.Time.now().to_sec()
-
-    uav_ros.pos0 = REF[0][0:3]
-
+    
+    uav_ros.pos0 = REF[0][0:3] + NU[0]
+    
     while not rospy.is_shutdown():
         t = rospy.Time.now().to_sec()
         
@@ -101,8 +136,6 @@ if __name__ == "__main__":
             
             '''2. generate outer-loop reference signal 'eta_d' and its 1st, 2nd derivatives'''
             eta_d, dot_eta_d, dot2_eta_d = ref[0: 3], dot_ref[0: 3], dot2_ref[0: 3]
-            # e = uav_ros.eta() - eta_d
-            # de = uav_ros.dot_eta() - dot_eta_d
             psi_d = ref[3]
             
             syst_dynamic = -uav_ros.kt / uav_ros.m * uav_ros.dot_eta() + uav_ros.A()
@@ -119,17 +152,15 @@ if __name__ == "__main__":
             
             '''3. Update the parameters of FNTSMC if RL is used'''
             if CONTROLLER == 'PX4-PID':
-                uav_ros.pose.pose.position.x = ref[0]
-                uav_ros.pose.pose.position.y = ref[1]
-                uav_ros.pose.pose.position.z = ref[2]
+                uav_ros.pose.pose.position.x = ref[0] + nu[0]
+                uav_ros.pose.pose.position.y = ref[1] + nu[1]
+                uav_ros.pose.pose.position.z = ref[2] + nu[2]
                 uav_ros.local_pos_pub.publish(uav_ros.pose)
                 phi_d, theta_d, uf = 0., 0., 0.
             else:
                 if CONTROLLER == 'RL':
                     ctrl_param_np = np.array(uav_ros.ctrl_param.data).astype(float)
-                    if t_now > t_miemie:  # 前几秒过渡一下
-                        controller.get_param_from_actor(ctrl_param_np, update_z=True)
-                    # controller.print_param()
+                    controller.get_param_from_actor(ctrl_param_np, update_z=True)
                     ctrl_param_record = np.atleast_2d(ctrl_param_np) if ctrl_param_record is None else np.vstack((ctrl_param_record, ctrl_param_np))
                 
                 '''3. generate phi_d, theta_d, throttle'''
@@ -138,10 +169,14 @@ if __name__ == "__main__":
                                                           consensus_e=uav_ros.consensus_e,
                                                           consensus_de=uav_ros.consensus_de,
                                                           Lambda_eta=uav_ros.lambda_eta,
-                                                          ref=eta_d + nu,
-                                                          d_ref=dot_eta_d + dot_nu,
-                                                          e_max=0.5,
-                                                          dot_e_max = 1.0)
+                                                          ref=eta_d,
+                                                          d_ref=dot_eta_d,
+                                                          dd_ref=dot2_eta_d,
+                                                          nu=nu,
+                                                          d_nu=dot_nu,
+                                                          dd_nu=dot2_nu,
+                                                          e_max=1.5,
+                                                          dot_e_max=2.0)
                 
                 phi_d, theta_d, dot_phi_d, dot_theta_d, uf = uav_ros.publish_ctrl_cmd(ctrl=controller.control_out_consensus,
                                                                                       psi_d=psi_d,

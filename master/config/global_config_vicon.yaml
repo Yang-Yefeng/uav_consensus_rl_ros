@@ -8,7 +8,8 @@ uav_existance: [1, 1, 1, 1]
 pi: 3.1416
 
 #controller: 'FNTSMC'
-controller: 'RL'
+#controller: 'RL'
+controller: 'PDT-FNTSMC'
 #controller: 'PX4-PID'
 #controller: 'FT-PD'
 #controller: 'RFNTSMC'

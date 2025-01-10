@@ -135,7 +135,7 @@ class fntsmc:
         self.yyf_p = self.k_yyf_p * e
         self.yyf_d = self.k_yyf_d * de
         
-        self.control_out = -(u1 + u2 + u3 + self.yyf_i + self.yyf_p + self.yyf_d + self.k_com_acc*dd_ref)
+        self.control_out = -(u1 + u2 + u3 + self.yyf_i + self.yyf_p + self.yyf_d + self.k_com_acc * dd_ref)
     
     def get_param_from_actor(self, action_from_actor: np.ndarray, update_z: bool = False):
         if np.min(action_from_actor) < 0:
@@ -207,20 +207,27 @@ class fntsmc_consensus(fntsmc):
                                        Lambda_eta: np.ndarray,
                                        ref: np.ndarray,
                                        d_ref: np.ndarray,
+                                       dd_ref: np.ndarray,
+                                       nu: np.ndarray,
+                                       d_nu: np.ndarray,
+                                       dd_nu: np.ndarray,
                                        e_max: float = 0.2,
                                        dot_e_max: float = 1.5):
         if e_max is not None:  # 增加对位置误差的输入饱和
             consensus_e = np.clip(consensus_e, -e_max, e_max)
         if dot_e_max is not None:  # 增加对速度误差的输入饱和
             consensus_de = np.clip(consensus_de, -dot_e_max, dot_e_max)
-        
-        s = (consensus_de + self.k_com_vel * d_ref) + self.k1 * (consensus_e + self.k_com_pos * ref) + self.k2 * self.sig(consensus_e + self.k_com_pos * ref, self.alpha1)
-        sigma = (self.k1 + self.k2 * self.alpha1 * self.sig(consensus_e + self.k_com_pos * ref, self.alpha1 - 1)) * (consensus_de + self.k_com_vel * d_ref)
-        u1 = Lambda_eta + sigma
+
+        pos_com = b * self.k_com_pos * ref + self.k_com_pos * nu
+        vel_com = b * self.k_com_vel * d_ref + self.k_com_vel * d_nu
+        acc_com = b * self.k_com_acc * dd_ref + self.k_com_acc * dd_nu
+        s = (consensus_de + vel_com) + self.k1 * (consensus_e + pos_com) + self.k2 * self.sig(consensus_e + pos_com, self.alpha1)
+        sigma = (self.k1 + self.k2 * self.alpha1 * self.sig(consensus_e + pos_com, self.alpha1 - 1)) * (consensus_de + vel_com)
+        u1 = -Lambda_eta + sigma
         u2 = self.k3 * np.tanh(5 * s) + self.k4 * self.sig(s, self.alpha2)
         
         self.yyf_i += self.k_yyf_i * consensus_e
         self.yyf_p = self.k_yyf_p * consensus_e
         self.yyf_d = self.k_yyf_d * consensus_de
         
-        self.control_out_consensus = -(u1 + u2 + self.yyf_i + self.yyf_p + self.yyf_d) / (d + b)
+        self.control_out_consensus = -(u1 + u2 + self.yyf_i + self.yyf_p + self.yyf_d + acc_com) / (d + b)

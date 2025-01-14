@@ -101,7 +101,7 @@ if __name__ == "__main__":
         _index = min(uav_ros.n, TOTAL_SEQ - 1)
         ref, dot_ref, dot2_ref = REF[_index], DOT_REF[_index], DOT2_REF[_index]
         nu, dot_nu, dot2_nu = NU[_index], DOT_NU[_index], DOT2_NU[_index]
-        obs = np.zeros(3)
+        observe = np.zeros(3)
         
         if uav_ros.global_flag == 1:  # approaching
             okk = uav_ros.approaching()
@@ -132,7 +132,7 @@ if __name__ == "__main__":
             
             uav_ros.cal_consensus_e(nu=nu, eta_d=eta_d)
             uav_ros.cal_consensus_de(dot_nu=dot_nu, dot_eta_d=dot_eta_d)
-            uav_ros.cal_Lambda_eta(dot2_eat_d=dot2_eta_d, dot2_nu=dot2_nu, obs=obs)
+            uav_ros.cal_Lambda_eta(dot2_eat_d=dot2_eta_d, dot2_nu=dot2_nu, obs=observe)
             
             '''3. Update the parameters of FNTSMC if RL is used'''
             if CONTROLLER == 'PX4-PID':
@@ -208,6 +208,6 @@ if __name__ == "__main__":
             uav_ros.pose.pose.position.z = uav_ros.pos0[2] - uav_ros.offset[2]
             uav_ros.local_pos_pub.publish(uav_ros.pose)
             print('working mode error...')
-        uav_ros.uav_msg_publish(ref, dot_ref, nu, dot_nu, dot2_nu, controller.control_out_consensus, obs)
+        uav_ros.uav_msg_publish(ref, dot_ref, nu, dot_nu, dot2_nu, controller.control_out_consensus, observe)
         uav_ros.nn_input_publish()
         uav_ros.rate.sleep()

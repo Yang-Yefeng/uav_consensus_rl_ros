@@ -180,7 +180,7 @@ if __name__ == '__main__':
         uav_stateData.append(pd.read_csv(path + uav_index[i] + '/uav_state.csv', header=0).to_numpy())
     
     plot_pos_consensus()
-    # plot_att_consensus()
+    plot_att_consensus()
     # plot_thrust_consensus()
     # plot_throttle_consensus()
     plot_obs_consensus()

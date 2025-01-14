@@ -54,11 +54,11 @@ uav1_fntsmc_parameters:
     dt: 0.01
 
 uav1_pdt_fntsmc_parameters:
-    alpha_s: [ 0.5, 0.5, 0.5 ]
-    beta1_s: [ 1., 1., 1. ]
+    alpha_s: [ 0.6, 0.6, 0.6 ]
+    beta1_s: [ 3., 3., 3. ]
     beta2_s: [ 1., 1., 1. ]
     beta3_s: [ 1., 1., 1. ]
-    Ts: [5., 5., 5.]
+    Ts: [10., 10., 10.]
     kappa1_s: [1., 1., 1.]
 
     alpha_c: [ 0.5, 0.5, 0.5]
@@ -68,7 +68,7 @@ uav1_pdt_fntsmc_parameters:
     Tc: [ 10., 10., 10. ]
     kappa1_c: [1., 1., 1.]
 
-    k2: [1, 1, 1]
+    k2: [1.5, 1.5, 2]
 #    alpha_s: [0.846153846, 0.846153846, 0.846153846]
 #    beta1_s: [5., 5., 5.]
 #    beta2_s: [1., 1., 1.]
@@ -96,7 +96,7 @@ uav1_pdt_fntsmc_parameters:
     dt: 0.01
 
 uav1_pdt_do:
-    T0: [1, 1, 1]
+    T0: [5, 5, 5]
     k1: [1, 1, 1]
     alpha: [0.5, 0.5, 0.5]
     beta1: [1, 1, 1]

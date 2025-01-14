@@ -1,0 +1,5 @@
+<launch>
+    <node pkg="uav3" type="control_consensus_pdt.py" name="uav3_control_consensus_pdt" output="screen">
+        <rosparam file="$(find uav3)/config/vicon/uav3_config_consensus.yaml" command="load" />
+    </node>
+</launch>

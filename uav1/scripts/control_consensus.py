@@ -108,7 +108,7 @@ if __name__ == "__main__":
     
     t0 = rospy.Time.now().to_sec()
     
-    uav_ros.pos0 = REF[0][0:3] + NU[0]
+    # uav_ros.pos0 = REF[0][0:3] + NU[0]
     
     while not rospy.is_shutdown():
         t = rospy.Time.now().to_sec()

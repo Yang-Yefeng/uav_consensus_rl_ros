@@ -132,7 +132,7 @@ if __name__ == "__main__":
             
             uav_ros.cal_consensus_e(nu=nu, eta_d=eta_d)
             uav_ros.cal_consensus_de(dot_nu=dot_nu, dot_eta_d=dot_eta_d)
-            uav_ros.cal_Lambda_eta(dot2_eat_d=dot2_eta_d, dot2_nu=dot2_nu, obs=obs if t_now > 3.0 else np.zeros(3))
+            uav_ros.cal_Lambda_eta(dot2_eat_d=dot2_eta_d, dot2_nu=dot2_nu, obs=obs if t_now > 2.0 else np.zeros(3))
             
             '''3. Update the parameters of FNTSMC if RL is used'''
             if CONTROLLER == 'PX4-PID':

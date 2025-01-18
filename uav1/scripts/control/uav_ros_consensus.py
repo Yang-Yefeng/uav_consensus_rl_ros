@@ -289,7 +289,7 @@ class UAV_ROS_Consensus:
         self.set_state(uav_odom_2_uav_state(self.uav_odom))
         self.local_pos_pub.publish(self.pose)
         print(np.linalg.norm(self.pos0 - self.pos))
-        if ((np.linalg.norm(self.pos0 - self.pos) < 0.5) and  # 位置误差
+        if ((np.linalg.norm(self.pos0 - self.pos) < 0.4) and  # 位置误差
                 (np.linalg.norm(self.vel) < 0.2) and  # 速度
                 (np.linalg.norm(self.att[2]) < deg2rad(10))):  # 偏航角
             self.uav_msg[1].are_you_ok.data = False

@@ -14,7 +14,7 @@ def state_cb(msg):
 
 if __name__ == "__main__":
     rospy.init_node("offb_node_py")
-    group = '/uav0'  # '/uav0'
+    group = '/uav1'  # '/uav0'
     state_sub = rospy.Subscriber(group+"/mavros/state", State, callback = state_cb)
 
     local_pos_pub = rospy.Publisher(group+"/mavros/setpoint_position/local", PoseStamped, queue_size=1000)

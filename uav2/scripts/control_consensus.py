@@ -41,6 +41,7 @@ if __name__ == "__main__":
     
     print('Approaching...')
     uav_ros.global_flag = 1
+    # sdfsdfssdfsdfsdf
     
     '''define controllers and observers'''
     obs_xy = rd3()
@@ -52,7 +53,7 @@ if __name__ == "__main__":
     elif CONTROLLER == 'FT-PD':
         controller = ftpd(kp_pos=np.array([2., 2., 2.5]),
                           ki_pos=np.array([0.005, 0.005, 0.4]),
-                          kd_pos=np.array([3., 3., 3.]),
+                          kd_pos=np.array([3., 3., 3]),
                           p_v=np.array([0.75, 0.75, 0.8]))
     else:
         controller = fntsmc_consensus(pos_ctrl_param)
@@ -135,8 +136,6 @@ if __name__ == "__main__":
             
             '''2. generate outer-loop reference signal 'eta_d' and its 1st, 2nd derivatives'''
             eta_d, dot_eta_d, dot2_eta_d = ref[0: 3], dot_ref[0: 3], dot2_ref[0: 3]
-            # e = uav_ros.eta() - eta_d
-            # de = uav_ros.dot_eta() - dot_eta_d
             psi_d = ref[3]
             
             syst_dynamic = -uav_ros.kt / uav_ros.m * uav_ros.dot_eta() + uav_ros.A()
@@ -161,9 +160,7 @@ if __name__ == "__main__":
             else:
                 if CONTROLLER == 'RL':
                     ctrl_param_np = np.array(uav_ros.ctrl_param.data).astype(float)
-                    if t_now > t_miemie:  # 前几秒过渡一下
-                        controller.get_param_from_actor(ctrl_param_np, update_z=True)
-                    # controller.print_param()
+                    controller.get_param_from_actor(ctrl_param_np, update_z=True)
                     ctrl_param_record = np.atleast_2d(ctrl_param_np) if ctrl_param_record is None else np.vstack((ctrl_param_record, ctrl_param_np))
                 
                 '''3. generate phi_d, theta_d, throttle'''
@@ -178,8 +175,8 @@ if __name__ == "__main__":
                                                           nu=nu,
                                                           d_nu=dot_nu,
                                                           dd_nu=dot2_nu,
-                                                          e_max=0.5,
-                                                          dot_e_max=1.0)
+                                                          e_max=1.5,
+                                                          dot_e_max=2.0)
                 
                 phi_d, theta_d, dot_phi_d, dot_theta_d, uf = uav_ros.publish_ctrl_cmd(ctrl=controller.control_out_consensus,
                                                                                       psi_d=psi_d,

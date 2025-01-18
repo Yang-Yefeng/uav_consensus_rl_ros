@@ -279,7 +279,10 @@ class UAV_ROS_Consensus:
         self.pose.pose.position.x = self.pos0[0] - self.offset[0]
         self.pose.pose.position.y = self.pos0[1] - self.offset[1]
         self.pose.pose.position.z = self.pos0[2] - self.offset[2]
-        
+        # print(self.pos0)
+        # self.pose.pose.position.x = 0
+        # self.pose.pose.position.y = 0
+        # self.pose.pose.position.z = 1
         cmd_q = tf.transformations.quaternion_from_euler(0., 0., 0)
         self.pose.pose.orientation.x = cmd_q[0]
         self.pose.pose.orientation.y = cmd_q[1]
@@ -289,7 +292,9 @@ class UAV_ROS_Consensus:
         self.set_state(uav_odom_2_uav_state(self.uav_odom))
         self.local_pos_pub.publish(self.pose)
         print(np.linalg.norm(self.pos0 - self.pos))
-        if ((np.linalg.norm(self.pos0 - self.pos) < 0.5) and  # 位置误差
+        
+        # print('pos:', self.pos)
+        if ((np.linalg.norm(self.pos0 - self.pos) < 0.4) and  # 位置误差
                 (np.linalg.norm(self.vel) < 0.2) and  # 速度
                 (np.linalg.norm(self.att[2]) < deg2rad(10))):  # 偏航角
             self.uav_msg[2].are_you_ok.data = False

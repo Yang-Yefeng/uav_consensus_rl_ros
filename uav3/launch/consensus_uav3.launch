@@ -1,5 +1,5 @@
 <launch>
-    <arg name="config" default='vicon' />
+    <arg name="config" default='gazebo' />
 <!--     <arg name="num" type="int" default=1 /> -->
     <param name="config" value="$(arg config)" />
 

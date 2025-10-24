@@ -13,9 +13,8 @@ Gazebo 仿真与实际试验是有很大区别的，注意检查所有的模型�
 注意: 配置好 PX4 之后，需要将本项目的 master 文件夹下边的 "yyf_0_single.launch" 和
 "yyf_consensus_4_uav.launch" 复制进 PX4 源代码的 launch 文件夹中，即 "/PX4-Autopilot/launch/"
 
-# 实验与仿真
 
-## 单架无人机的仿真
+# 单架无人机的仿真
 只有 **uav0** 这个 ROS 包可以被用来运行单架无人机的仿真，
 因为相关的launch文件只有在 **uav0** 中才有。 
 
@@ -39,33 +38,7 @@ roslaunch uav0 control_single.launch config:=gazebo
 ```
 OKK!
 
-## 单无人机实验 (有室内动作捕捉系统, 仅适用于我课题组)
-需要启动三个终端 
-
-- 第一个终端 (用来启动室内定位) 
-```
-roslaunch uav0 vrpn_single.launch drone_name:=无人机刚体在动捕中的名字
-```
-
-- 第二个终端 (用来启动 mavros)
-```
-cd $(YOUR_WORK_SPACE)
-catkin_make
-source devel/setup.bash
-roslaunch uav0 start_vicon_single.launch
-```
-
-- 第三个终端 (用于启动控制节点)
-
-```
-cd $(YOUR_WORK_SPACE)
-source devel/setup.bash
-roslaunch uav0 control_single.launch config:=vicon
-```
-
-OKK!
-
-## 多无人机仿真
+# 多架无人机仿真
 以 2 架无人机为例，需要打开 4 个终端
 
 - 第 1 个终端 (用于打开 Gazebo 仿真环境)
@@ -92,14 +65,14 @@ roslaunch master global_config.launch
 ```
 cd $(YOUR_WORK_SPACE)
 source devel/setup.bash
-roslaunch uav0 consensus_uav0.launch config:=gazebo
+roslaunch uav0 consensus_uav0.launch  # 后面不用加 config:=gazebo, 仿真环境默认就是这个
 ```
 
 - 第 4 个终端 (用于启动第 2 个无人机控制节点)
 ```
 cd $(YOUR_WORK_SPACE)
 source devel/setup.bash
-roslaunch master consensus_uav1.launch config:=gazebo
+roslaunch master consensus_uav1.launch # 后面不用加 config:=gazebo, 仿真环境默认就是这个
 ```
 
 OKK!
@@ -108,7 +81,7 @@ OKK!
 ```
 cd $(YOUR_WORK_SPACE)
 source devel/setup.bash
-roslaunch master consensus_uav2.launch config:=gazebo
+roslaunch master consensus_uav2.launch # 后面不用加 config:=gazebo, 仿真环境默认就是这个
 ```
 即可，以此类推。目前仿真环境中有四架飞机，
 Gazebo 默认最多支持 10 架，熟悉这个项目的代码之后可以随意增删。

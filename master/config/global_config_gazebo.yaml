@@ -9,9 +9,9 @@ pi: 3.1416
 
 #controller: 'FNTSMC'
 #controller: 'RL'
-#controller: 'PX4-PID'
+controller: 'PX4-PID'
 #controller: 'FT-PD'
-controller: 'PDT-FNTSMC'
+# controller: 'PDT-FNTSMC'
 #controller: 'RFNTSMC'
 
 test_group: 3

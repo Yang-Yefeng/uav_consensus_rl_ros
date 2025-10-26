@@ -7,14 +7,14 @@
     <arg name="vehicle" default="iris"/>
 
     <!-- <arg name="world" default="$(find mavlink_sitl_gazebo)/worlds/empty.world"/> -->
-
+    
     <!-- gazebo configs -->
     <!-- <arg name="gui" default="true"/>
     <arg name="debug" default="false"/>
     <arg name="verbose" default="false"/>
     <arg name="paused" default="false"/> -->
 
-    <!-- Gazebo sim -->
+    <!-- Gazebo sim --> <!-- 这个配置不够好，模型有镂空，并且自己会移动-->
     <!-- <include file="$(find gazebo_ros)/launch/empty_world.launch">
         <arg name="gui" value="$(arg gui)"/>
         <arg name="world_name" value="$(arg world)"/>
@@ -22,6 +22,8 @@
         <arg name="verbose" value="$(arg verbose)"/>
         <arg name="paused" value="$(arg paused)"/>
     </include> -->
+
+    <!-- Gazebo sim --> <!-- 这个配置更好，里面的模型更好看，模型没有镂空，也不会自己移动 -->
     <include file="$(find gazebo_ros)/launch/empty_world.launch">
         <arg name="world_name" value="$(find turtlebot3_gazebo)/worlds/empty.world"/>
         <arg name="paused" value="false"/>
@@ -30,6 +32,16 @@
         <arg name="headless" value="false"/>
         <arg name="debug" value="false"/>
     </include>
+
+    <!-- turtlebot3 -->
+    <group ns="turtlebot3">
+        <arg name="model" default="$(env TURTLEBOT3_MODEL)" doc="model type [burger, waffle, waffle_pi]"/>
+        <arg name="x_pos" default="0.0"/>
+        <arg name="y_pos" default="0.0"/>
+        <arg name="z_pos" default="0.0"/>
+        <param name="robot_description" command="$(find xacro)/xacro --inorder $(find turtlebot3_description)/urdf/turtlebot3_$(arg model).urdf.xacro" />
+        <node pkg="gazebo_ros" type="spawn_model" name="spawn_urdf" args="-urdf -model turtlebot3_$(arg model) -x $(arg x_pos) -y $(arg y_pos) -z $(arg z_pos) -param robot_description" />
+    </group>
 
     <!-- UAV0 -->
     <group ns="uav0">
@@ -57,6 +69,7 @@
             <arg name="tgt_component" value="1"/>
         </include>
     </group>
+
     <!-- UAV1 -->
     <group ns="uav1">
         MAVROS and vehicle configs
@@ -83,6 +96,7 @@
             <arg name="tgt_component" value="1"/>
         </include>
     </group>
+
     <!-- UAV2 -->
     <group ns="uav2">
         MAVROS and vehicle configs
@@ -109,6 +123,7 @@
             <arg name="tgt_component" value="1"/>
         </include>
     </group>
+
     <!-- UAV3 -->
     <group ns="uav3">
         MAVROS and vehicle configs

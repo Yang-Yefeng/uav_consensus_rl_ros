@@ -47,8 +47,7 @@ OKK!
 cd $(YOUR_WORK_SPACE)
 catkin_make
 source devel/setup.bash
-cd src/uav_consensus_rl_ros/master
-./yyf_conensus_gazebo.sh
+.src/uav_consensus_rl_ros/master/yyf_conensus_gazebo.sh
 ```
 
 - 第 2 个终端 (用于开启 global_config)
@@ -89,6 +88,29 @@ Gazebo 默认最多支持 10 架，熟悉这个项目的代码之后可以随意
 因为每个控制节点会单独输出一些信息，如果强行用一个 terminal 启动的话，万一有问题，难以定位。
 此外，实际实验时，本项目所拟定使用的飞机不是那种巴掌大的CrazyFile，所以一键启动容易有危险，
 最好一架一架一次启动，这样便于观察异常。
+
+# 多架无人机 -- 无人车协同仿真
+
+让多架无人机跟踪地面小车移动，这里使用一个 turtlebot3 小车和四架无人机举例子
+
+- 第 1 个终端 (用于打开 Gazebo 仿真环境)
+
+```
+cd $(YOUR_WORK_SPACE)
+catkin_make
+source devel/setup.bash
+.src/uav_consensus_rl_ros/master/yyf_conensus_gazebo_uav_ugv.sh
+```
+
+- 第 2 个终端 (用于启动小车移动节点)
+
+注：这里的小车是不带控制算法的，我们直接给小车速度指令，小车按照指令直接行走即可
+
+```
+cd $(YOUR_WORK_SPACE)
+catkin_make
+source devel/setup.bash
+```
 
 ### 仿真视频
 Group 0 (中心点画圆，四个无人机偏移量不变):

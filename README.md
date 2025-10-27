@@ -71,7 +71,7 @@ roslaunch uav0 consensus_uav0.launch  # 后面不用加 config:=gazebo, 仿真�
 ```
 cd $(YOUR_WORK_SPACE)
 source devel/setup.bash
-roslaunch master consensus_uav1.launch # 后面不用加 config:=gazebo, 仿真环境默认就是这个
+roslaunch uav1 consensus_uav1.launch # 后面不用加 config:=gazebo, 仿真环境默认就是这个
 ```
 
 OKK!
@@ -80,7 +80,7 @@ OKK!
 ```
 cd $(YOUR_WORK_SPACE)
 source devel/setup.bash
-roslaunch master consensus_uav2.launch # 后面不用加 config:=gazebo, 仿真环境默认就是这个
+roslaunch uav2 consensus_uav2.launch # 后面不用加 config:=gazebo, 仿真环境默认就是这个
 ```
 即可，以此类推。目前仿真环境中有四架飞机，
 Gazebo 默认最多支持 10 架，熟悉这个项目的代码之后可以随意增删。

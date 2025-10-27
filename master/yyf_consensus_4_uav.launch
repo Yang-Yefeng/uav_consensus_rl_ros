@@ -22,6 +22,7 @@
         <arg name="verbose" value="$(arg verbose)"/>
         <arg name="paused" value="$(arg paused)"/>
     </include> -->
+    
     <include file="$(find gazebo_ros)/launch/empty_world.launch">
         <arg name="world_name" value="$(find turtlebot3_gazebo)/worlds/empty.world"/>
         <arg name="paused" value="false"/>

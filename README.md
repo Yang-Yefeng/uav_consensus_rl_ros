@@ -130,5 +130,5 @@ Group 3 (中心点 8 字型，四个无人机偏移量不变):
 <img src="https://github.com/Yang-Yefeng/uav_consensus_rl_ros/blob/simulation/master/gif/four_drone_gazebo_test3.gif" width="400px">
 </div>
 
-## 多智能体实验
-挺麻烦的，写在 master 的README.md 里面了
+<!-- ## 多智能体实验
+挺麻烦的，写在 master 的README.md 里面了 -->

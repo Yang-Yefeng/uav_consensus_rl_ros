@@ -27,6 +27,7 @@ if __name__ == "__main__":
     CONTROLLER = rospy.get_param('/global_config/controller')
     use_obs = rospy.get_param('/global_config/use_obs')
     uav_existance = rospy.get_param('/global_config/uav_existance')
+    gazebo_offset = np.array(rospy.get_param('/global_config/gazebo_offset')[0])
     '''load some global configuration parameters'''
 
     if CONTROLLER == 'RFNTSMC':
@@ -74,7 +75,7 @@ if __name__ == "__main__":
 
     t0 = rospy.Time.now().to_sec()
 
-    uav_ros.pos0 = np.array([3.,0.,3.])
+    uav_ros.pos0 = gazebo_offset
 
     while not rospy.is_shutdown():
         t = rospy.Time.now().to_sec()
@@ -122,10 +123,9 @@ if __name__ == "__main__":
             
             '''3. Update the parameters of FNTSMC if RL is used'''
             if CONTROLLER == 'PX4-PID':
-                print('NU:', nu)
-                uav_ros.pose.pose.position.x = ref[0] + nu[0]
-                uav_ros.pose.pose.position.y = ref[1] + nu[1]
-                uav_ros.pose.pose.position.z = ref[2] + nu[2]
+                uav_ros.pose.pose.position.x = ref[0] + nu[0] - gazebo_offset[0]
+                uav_ros.pose.pose.position.y = ref[1] + nu[1] - gazebo_offset[1]
+                uav_ros.pose.pose.position.z = ref[2] + nu[2] - gazebo_offset[2]
                 uav_ros.local_pos_pub.publish(uav_ros.pose)
                 phi_d, theta_d, uf = 0., 0., 0.
             else:

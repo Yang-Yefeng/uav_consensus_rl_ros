@@ -5,14 +5,15 @@ use_gazebo: true
 use_obs: false
 uav_existance: [1, 0, 0, 0]
 
+gazebo_offset: [[3, 0, 0], [0, 3, 0], [-3, 0, 0], [0, -3, 0]]   # gazebo 的仿真模型中有一个初始的位置偏移
 pi: 3.1416
 
-#controller: 'FNTSMC'
+# controller: 'FNTSMC'
 #controller: 'RL'
 controller: 'PX4-PID'
 #controller: 'FT-PD'
 # controller: 'PDT-FNTSMC'
-#controller: 'RFNTSMC'
+# controller: 'RFNTSMC'
 
 test_group: 0
 

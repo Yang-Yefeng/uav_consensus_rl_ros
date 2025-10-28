@@ -110,6 +110,14 @@ def ref_uav(time: float, amplitude: np.ndarray, period: np.ndarray, bias_a: np.n
     return _r, _dr, _ddr
 
 
+def offset_uav(time: float, A: np.ndarray, T: np.ndarray, ba: np.ndarray, bp: np.ndarray):
+    w = 2 * np.pi / T
+    _off = A * np.sin(w * time + bp) + ba
+    _doff = A * w * np.cos(w * time + bp)
+    _ddoff= -A * w ** 2 * np.sin(w * time + bp)
+    return _off, _doff, _ddoff
+
+
 def ref_uav_sequence(dt: float,
                      tm: float,
                      amplitude: np.ndarray,

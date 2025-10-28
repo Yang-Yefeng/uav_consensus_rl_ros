@@ -1,4 +1,6 @@
 import os, sys
+from copy import deepcopy
+import math
 
 import numpy as np
 import rospy
@@ -9,6 +11,7 @@ from sensor_msgs.msg import BatteryState
 from tf.transformations import quaternion_matrix
 from std_msgs.msg import Float32MultiArray
 from uav0.msg import uav_msg
+from nav_msgs.msg import Odometry
 
 from control.utils import *
 
@@ -81,6 +84,7 @@ class UAV_ROS_Consensus:
         self.ctrl_cmd = AttitudeTarget()
         self.voltage = 11.4
         self.global_flag = 0
+        self.ugv_msg = Odometry()
         
         '''OK 标志位'''
         self.uav_msg = [uav_msg() for _ in range(4)]
@@ -106,6 +110,7 @@ class UAV_ROS_Consensus:
         
         self.uav_vel_sub = rospy.Subscriber(self.group + "/mavros/local_position/odom", Odometry, callback=self.uav_odom_cb)
         self.uav_battery_sub = rospy.Subscriber(self.group + "/mavros/battery", BatteryState, callback=self.uav_battery_cb)
+        self.ugv_odom_sub = rospy.Subscriber("/turtlebot3/odom", Odometry, callback=self.ugv_odom_cb)
         '''topic subscribe'''
         
         self.local_pos_pub = rospy.Publisher(self.group + "/mavros/setpoint_position/local", PoseStamped, queue_size=10)
@@ -184,6 +189,34 @@ class UAV_ROS_Consensus:
     def uav_msg_3_cb(self, msg: uav_msg):
         self.uav_msg[3] = msg
     
+    def ugv_odom_cb(self, msg: Odometry):
+        self.ugv_msg = deepcopy(msg)
+    
+    def get_ugv_pos(self):
+        x = self.ugv_msg.pose.pose.position.x
+        y = self.ugv_msg.pose.pose.position.y
+        z = self.ugv_msg.pose.pose.position.z
+        return np.array([x, y, z], dtype=float)
+    
+    def get_ugv_yaw(self):
+        qx = self.ugv_msg.pose.pose.orientation.x
+        qy = self.ugv_msg.pose.pose.orientation.y
+        qz = self.ugv_msg.pose.pose.orientation.z
+        qw = self.ugv_msg.pose.pose.orientation.w
+        siny_cosp = 2 * (qw * qz + qx * qy)
+        cosy_cosp = 1 - 2 * (qy * qy + qz * qz)
+        yaw = math.atan2(siny_cosp, cosy_cosp)
+        return yaw
+    
+    def get_ugv_vel(self):
+        vx_base = self.ugv_msg.twist.twist.linear.x
+        vy_base = self.ugv_msg.twist.twist.linear.y  # 通常为0
+        yaw = self.get_ugv_yaw()
+        vx_world = vx_base * np.cos(yaw) - vy_base * np.sin(yaw)
+        vy_world = vx_base * np.sin(yaw) + vy_base * np.cos(yaw)
+        return np.array([vx_world, vy_world, 0.], dtype=float)
+
+    
     def cal_consensus_e(self, nu: np.ndarray, eta_d: np.ndarray):
         e1 = (self.d + self.b) * (self.eta() - nu) - self.b * eta_d
         
@@ -222,12 +255,14 @@ class UAV_ROS_Consensus:
         # lambda_eta -= le1 + le2 + le3 + le4
         lambda_eta = self.b * dot2_eat_d + (self.d + self.b) * dot2_nu
         le1 = self.adj[0] * (np.array(self.uav_msg[0].second_order_dynamic) - np.array(self.uav_msg[0].dot2_nu))
+        # print(self.adj[0], self.uav_msg[0].second_order_dynamic, self.uav_msg[0].dot2_nu)
         le2 = self.adj[1] * (np.array(self.uav_msg[1].second_order_dynamic) - np.array(self.uav_msg[1].dot2_nu)) \
             if self.uav_existance[1] == 1 else np.zeros(3)
         le3 = self.adj[2] * (np.array(self.uav_msg[2].second_order_dynamic) - np.array(self.uav_msg[2].dot2_nu)) \
             if self.uav_existance[2] == 1 else np.zeros(3)
         le4 = self.adj[3] * (np.array(self.uav_msg[3].second_order_dynamic) - np.array(self.uav_msg[3].dot2_nu)) \
             if self.uav_existance[3] == 1 else np.zeros(3)
+        # print(le1, le2, le3, le4)
         lambda_eta += le1 + le2 + le3 + le4
         self.lambda_eta = lambda_eta.copy()
     
@@ -256,6 +291,7 @@ class UAV_ROS_Consensus:
         self.uav_msg[0].second_order_dynamic = (-self.kt / self.m * self.dot_eta() + ctrl + obs).tolist()
         self.uav_msg[0].name = 'uav0'
         self.uav_msg_0_pub.publish(self.uav_msg[0])
+        # print(self.uav_msg[0].second_order_dynamic)
     
     def nn_input_publish(self):
         self.nn_input.data = np.concatenate((self.consensus_e, self.consensus_de)).tolist()

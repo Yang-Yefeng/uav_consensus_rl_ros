@@ -2,6 +2,7 @@
 import rospy
 from gazebo_msgs.srv import SetModelState
 from gazebo_msgs.msg import ModelState
+import time
 
 
 def reset_robot_to_origin(model_name="turtlebot3_burger"):
@@ -36,3 +37,4 @@ def reset_robot_to_origin(model_name="turtlebot3_burger"):
 if __name__ == '__main__':
     rospy.init_node('reset_robot_node')
     reset_robot_to_origin()
+    time.sleep(1.0)

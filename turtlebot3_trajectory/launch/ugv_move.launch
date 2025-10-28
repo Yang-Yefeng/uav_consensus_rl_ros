@@ -1,0 +1,4 @@
+<launch>
+    <node pkg="turtlebot3_trajectory" type="reset_ugv_pos.py" name="reset_robot_node" output="screen" />
+    <node pkg="turtlebot3_trajectory" type="circle_movement.py" name="turtlebot3_circle" output="screen" />
+</launch>

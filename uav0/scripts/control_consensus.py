@@ -14,6 +14,7 @@ from control.utils import *
 cur_ws = os.path.dirname(os.path.abspath(__file__)) + '/../../'
 ID = 0
 
+
 if __name__ == "__main__":
     rospy.init_node("uav0_control_consensus")
     

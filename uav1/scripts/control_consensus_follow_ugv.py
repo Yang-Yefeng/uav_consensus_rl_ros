@@ -98,7 +98,7 @@ if __name__ == "__main__":
                 uav_ros.global_flag = 2
             t0 = rospy.Time.now().to_sec()
         elif uav_ros.global_flag == 2:  # control
-            uav_ros.uav_msg[0].are_you_ok.data = True
+            uav_ros.uav_msg[ID].are_you_ok.data = True
             t_now = round(t - t0, 4)
             if uav_ros.n % 100 == 0:
                 print('time: ', t_now)

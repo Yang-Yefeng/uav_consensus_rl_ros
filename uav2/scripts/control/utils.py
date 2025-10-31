@@ -188,6 +188,14 @@ def ref_uav_sequence_Bernoulli_with_dead(dt: float,
     return np.concatenate((_r_miemie, _r)), np.concatenate((_dr_miemie, _dr)), np.concatenate((_ddr_miemie, _ddr))
 
 
+def offset_uav(time: float, A: np.ndarray, T: np.ndarray, ba: np.ndarray, bp: np.ndarray):
+    w = 2 * np.pi / T
+    _off = A * np.sin(w * time + bp) + ba
+    _doff = A * w * np.cos(w * time + bp)
+    _ddoff= -A * w ** 2 * np.sin(w * time + bp)
+    return _off, _doff, _ddoff
+
+
 def offset_uav_sequence(dt: float, tm: float, A: np.ndarray, T: np.ndarray, ba: np.ndarray, bp: np.ndarray):
     N = int(np.round(tm / dt))
     _off = np.zeros((N, 3))

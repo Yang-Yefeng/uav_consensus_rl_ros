@@ -12,10 +12,10 @@ from control.collector import data_collector
 from control.utils import *
 
 cur_ws = os.path.dirname(os.path.abspath(__file__)) + '/../../'
-ID = 0
+ID = 3
 
 if __name__ == "__main__":
-    rospy.init_node("uav0_control_consensus_follow_ugv")
+    rospy.init_node("uav3_control_consensus_follow_ugv")
 
     '''load some global configuration parameters'''
     t_miemie = rospy.get_param('/global_config/t_miemie')  # 轨迹跟踪前的初始化等待时间
@@ -27,7 +27,7 @@ if __name__ == "__main__":
     CONTROLLER = rospy.get_param('/global_config/controller')
     use_obs = rospy.get_param('/global_config/use_obs')
     uav_existance = rospy.get_param('/global_config/uav_existance')
-    gazebo_offset = np.array(rospy.get_param('/global_config/gazebo_offset')[ID])
+    gazebo_offset = np.array(rospy.get_param('/global_config/gazebo_offset')[ID])    # 这个索引要改
     '''load some global configuration parameters'''
 
     if CONTROLLER == 'RFNTSMC':
@@ -37,7 +37,7 @@ if __name__ == "__main__":
         pos_ctrl_param = fntsmc_param()
         pos_ctrl_param.load_param_from_yaml('~uav' + str(ID) + '_fntsmc_parameters')
     
-    uav_ros = UAV_ROS_Consensus(uav_existance=uav_existance, use_ros_param=True, name='~uav0_parameters')
+    uav_ros = UAV_ROS_Consensus(uav_existance=uav_existance, use_ros_param=True, name='~uav3_parameters')
     uav_ros.connect()
     uav_ros.offboard_arm()
     
@@ -46,9 +46,9 @@ if __name__ == "__main__":
     
     '''define controllers and observers'''
     obs_xy = rd3()
-    obs_xy.load_param_from_yaml('~uav0_obs_xy')
+    obs_xy.load_param_from_yaml('~uav3_obs_xy')
     obs_z = rd3()
-    obs_z.load_param_from_yaml('~uav0_obs_z')
+    obs_z.load_param_from_yaml('~uav3_obs_z')
     if CONTROLLER == 'RFNTSMC':
         controller = rfntsmc_consensus(pos_ctrl_param)
     elif CONTROLLER == 'FT-PD':
@@ -76,7 +76,6 @@ if __name__ == "__main__":
     t0 = rospy.Time.now().to_sec()
 
     uav_ros.pos0 = np.array([gazebo_offset[0], gazebo_offset[1], 2])
-    # print(uav_ros.pos0)
 
     while not rospy.is_shutdown():
         t = rospy.Time.now().to_sec()
@@ -178,20 +177,18 @@ if __name__ == "__main__":
             
             if data_record.index == data_record.N:
                 print('Data collection finish. Switching to offboard position...')
-                save_path = cur_ws + 'uav0/scripts/datasave/uav0/'
+                save_path = cur_ws + 'uav3/scripts/datasave/uav3/'
                 if not os.path.exists(save_path):
                     os.mkdir(save_path)
                 data_record.package2file(path=save_path)
                 uav_ros.global_flag = 3
         elif uav_ros.global_flag == 3:  # finish, back to position
-            # pass
             uav_ros.uav_msg[ID].are_you_ok.data = True
             uav_ros.pose.pose.position.x = uav_ros.pos0[0] - gazebo_offset[0]
             uav_ros.pose.pose.position.y = uav_ros.pos0[1] - gazebo_offset[1]
             uav_ros.pose.pose.position.z = uav_ros.pos0[2] - gazebo_offset[2]
             uav_ros.local_pos_pub.publish(uav_ros.pose)
         else:
-            # pass
             uav_ros.uav_msg[ID].are_you_ok.data = True
             uav_ros.pose.pose.position.x = uav_ros.pos0[0] - gazebo_offset[0]
             uav_ros.pose.pose.position.y = uav_ros.pos0[1] - gazebo_offset[1]

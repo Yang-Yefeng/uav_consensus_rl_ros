@@ -123,14 +123,14 @@ if __name__ == "__main__":
         if uav_ros.global_flag == 1:  # approaching
             okk = uav_ros.approaching()
             if okk:
-                uav_ros.uav_msg[1].are_you_ok.data = True
+                uav_ros.uav_msg[ID].are_you_ok.data = True
             else:
-                uav_ros.uav_msg[1].are_you_ok.data = False
+                uav_ros.uav_msg[ID].are_you_ok.data = False
             if okk and uav_ros.check_other_uav_ok():
                 uav_ros.global_flag = 2
             t0 = rospy.Time.now().to_sec()
         elif uav_ros.global_flag == 2:  # control
-            uav_ros.uav_msg[1].are_you_ok.data = True
+            uav_ros.uav_msg[ID].are_you_ok.data = True
             t_now = round(t - t0, 4)
             if uav_ros.n % 100 == 0:
                 print('time: ', t_now)
@@ -211,13 +211,13 @@ if __name__ == "__main__":
                 data_record.package2file(path=save_path)
                 uav_ros.global_flag = 3
         elif uav_ros.global_flag == 3:  # finish, back to position
-            uav_ros.uav_msg[1].are_you_ok.data = True
+            uav_ros.uav_msg[ID].are_you_ok.data = True
             uav_ros.pose.pose.position.x = uav_ros.pos0[0]
             uav_ros.pose.pose.position.y = uav_ros.pos0[1]
             uav_ros.pose.pose.position.z = uav_ros.pos0[2]
             uav_ros.local_pos_pub.publish(uav_ros.pose)
         else:
-            uav_ros.uav_msg[1].are_you_ok.data = True
+            uav_ros.uav_msg[ID].are_you_ok.data = True
             uav_ros.pose.pose.position.x = uav_ros.pos0[0]
             uav_ros.pose.pose.position.y = uav_ros.pos0[1]
             uav_ros.pose.pose.position.z = uav_ros.pos0[2]

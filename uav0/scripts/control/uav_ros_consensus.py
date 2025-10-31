@@ -216,7 +216,6 @@ class UAV_ROS_Consensus:
         vy_world = vx_base * np.sin(yaw) + vy_base * np.cos(yaw)
         return np.array([vx_world, vy_world, 0.], dtype=float)
 
-    
     def cal_consensus_e(self, nu: np.ndarray, eta_d: np.ndarray):
         e1 = (self.d + self.b) * (self.eta() - nu) - self.b * eta_d
         
@@ -255,14 +254,12 @@ class UAV_ROS_Consensus:
         # lambda_eta -= le1 + le2 + le3 + le4
         lambda_eta = self.b * dot2_eat_d + (self.d + self.b) * dot2_nu
         le1 = self.adj[0] * (np.array(self.uav_msg[0].second_order_dynamic) - np.array(self.uav_msg[0].dot2_nu))
-        # print(self.adj[0], self.uav_msg[0].second_order_dynamic, self.uav_msg[0].dot2_nu)
         le2 = self.adj[1] * (np.array(self.uav_msg[1].second_order_dynamic) - np.array(self.uav_msg[1].dot2_nu)) \
             if self.uav_existance[1] == 1 else np.zeros(3)
         le3 = self.adj[2] * (np.array(self.uav_msg[2].second_order_dynamic) - np.array(self.uav_msg[2].dot2_nu)) \
             if self.uav_existance[2] == 1 else np.zeros(3)
         le4 = self.adj[3] * (np.array(self.uav_msg[3].second_order_dynamic) - np.array(self.uav_msg[3].dot2_nu)) \
             if self.uav_existance[3] == 1 else np.zeros(3)
-        # print(le1, le2, le3, le4)
         lambda_eta += le1 + le2 + le3 + le4
         self.lambda_eta = lambda_eta.copy()
     

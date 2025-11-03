@@ -132,25 +132,29 @@ roslaunch uav{i} consensus_uav{i}_ugv.launch # i 分别等于0, 1, 2, 3
 ```
 
 ### 仿真视频
-Demo 0 (中心点画圆，四个无人机偏移量不变):
+Demo 1 (中心点画圆，四个无人机偏移量不变):
 <div align=center>
 <img src="https://github.com/Yang-Yefeng/uav_consensus_rl_ros/blob/simulation/master/gif/four_drone_gazebo_test0.gif" width="400px">
 </div>
-Demo 1 (心点定点，四个无人机偏移量不变):
+Demo 2 (心点定点，四个无人机偏移量不变):
 <div align=center>
 <img src="https://github.com/Yang-Yefeng/uav_consensus_rl_ros/blob/simulation/master/gif/four_drone_gazebo_test1.gif" width="400px">
 </div>
-Demo 2 (中定点画圆，四个无人机偏移量也是圆):
+Demo 3 (中定点画圆，四个无人机偏移量也是圆):
 <div align=center>
 <img src="https://github.com/Yang-Yefeng/uav_consensus_rl_ros/blob/simulation/master/gif/four_drone_gazebo_test2.gif" width="400px">
 </div>
-Demo 3 (中心点 8 字型，四个无人机偏移量不变):
+Demo 4 (中心点 8 字型，四个无人机偏移量不变):
 <div align=center>
 <img src="https://github.com/Yang-Yefeng/uav_consensus_rl_ros/blob/simulation/master/gif/four_drone_gazebo_test3.gif" width="400px">
 </div>
-Demo 4 (四个无人机在小车上方跟随)
+Demo 5 (四个无人机在小车上方盘旋)
 <div align=center>
 <img src="https://github.com/Yang-Yefeng/uav_consensus_rl_ros/blob/simulation/master/gif/four_drone_follow_ugv_gazebo.gif" width="400px">
+</div>
+Demo 6 (四个无人机在小车上方跟随)
+<div align=center>
+<img src="https://github.com/Yang-Yefeng/uav_consensus_rl_ros/blob/simulation/master/gif/four_drone_follow_ugv_gazebo2.gif" width="400px">
 </div>
 <!-- ## 多智能体实验
 挺麻烦的，写在 master 的README.md 里面了 -->

@@ -63,7 +63,7 @@ if __name__ == "__main__":
     '''define controllers and observers'''
 
     if test_group == 0 or test_group == 1:
-            _s = str(test_group)
+        _s = str(test_group)
     else:
         _s = 'else'
     _traj = rospy.get_param('/global_config/trajectory_' + _s)

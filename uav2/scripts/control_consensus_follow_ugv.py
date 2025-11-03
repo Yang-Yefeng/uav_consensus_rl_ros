@@ -63,7 +63,7 @@ if __name__ == "__main__":
     '''define controllers and observers'''
 
     if test_group == 0 or test_group == 1:
-            _s = str(test_group)
+        _s = str(test_group)
     else:
         _s = 'else'
     _traj = rospy.get_param('/global_config/trajectory_' + _s)
@@ -123,6 +123,7 @@ if __name__ == "__main__":
             
             '''3. Update the parameters of FNTSMC if RL is used'''
             if CONTROLLER == 'PX4-PID':
+                print(ref)
                 uav_ros.pose.pose.position.x = ref[0] + nu[0] - gazebo_offset[0]
                 uav_ros.pose.pose.position.y = ref[1] + nu[1] - gazebo_offset[1]
                 uav_ros.pose.pose.position.z = ref[2] + nu[2] - gazebo_offset[2]

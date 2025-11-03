@@ -111,6 +111,7 @@ class UAV_ROS_Consensus:
         
         self.uav_vel_sub = rospy.Subscriber(self.group + "/mavros/local_position/odom", Odometry, callback=self.uav_odom_cb)
         self.uav_battery_sub = rospy.Subscriber(self.group + "/mavros/battery", BatteryState, callback=self.uav_battery_cb)
+        self.ugv_odom_sub = rospy.Subscriber("/turtlebot3/odom", Odometry, callback=self.ugv_odom_cb)
         '''topic subscribe'''
         
         self.local_pos_pub = rospy.Publisher(self.group + "/mavros/setpoint_position/local", PoseStamped, queue_size=10)

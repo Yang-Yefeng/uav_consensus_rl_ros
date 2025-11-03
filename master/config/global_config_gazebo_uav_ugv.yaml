@@ -15,7 +15,7 @@ controller: 'PX4-PID'
 # controller: 'PDT-FNTSMC'
 # controller: 'RFNTSMC'
 
-test_group: 1
+test_group: 0
 
 trajectory_0:  # 编队 follow 下边的车，队形不变
   oa: [[0., 0., 0.], [0., 0., 0.], [0., 0., 0.], [0., 0., 0.]]    # 振幅

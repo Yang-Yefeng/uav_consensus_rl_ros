@@ -102,7 +102,14 @@ source devel/setup.bash
 .src/uav_consensus_rl_ros/master/yyf_conensus_gazebo_uav_ugv.sh
 ```
 
-- 第 2 个终端 (用于启动小车移动节点)
+- 第 2 个终端 (用于加载全局仿真配置文件)
+```
+cd $(YOUR_WORK_SPACE)
+source devel/setup.bash
+roslaunch master global_config_uav_ugv.launch 
+```
+
+- 第 3 个终端 (用于启动小车移动节点)
 
 注：这里的小车是不带控制算法的，我们直接给小车速度指令，小车按照指令直接行走即可
 
@@ -110,25 +117,40 @@ source devel/setup.bash
 cd $(YOUR_WORK_SPACE)
 catkin_make
 source devel/setup.bash
+roslaunch turtlebot3_trajectory ugv_move.launch
+```
+
+- 第 4 -- 7 个终端 (用于启动无人机控制节点)
+
+注：无人机编号分别为0, 1, 2, 3
+
+```
+cd $(YOUR_WORK_SPACE)
+catkin_make
+source devel/setup.bash
+roslaunch uav{i} consensus_uav{i}_ugv.launch # i 分别等于0, 1, 2, 3
 ```
 
 ### 仿真视频
-Group 0 (中心点画圆，四个无人机偏移量不变):
+Demo 0 (中心点画圆，四个无人机偏移量不变):
 <div align=center>
 <img src="https://github.com/Yang-Yefeng/uav_consensus_rl_ros/blob/simulation/master/gif/four_drone_gazebo_test0.gif" width="400px">
 </div>
-Group 1 (心点定点，四个无人机偏移量不变):
+Demo 1 (心点定点，四个无人机偏移量不变):
 <div align=center>
 <img src="https://github.com/Yang-Yefeng/uav_consensus_rl_ros/blob/simulation/master/gif/four_drone_gazebo_test1.gif" width="400px">
 </div>
-Group 2 (中定点画圆，四个无人机偏移量也是圆):
+Demo 2 (中定点画圆，四个无人机偏移量也是圆):
 <div align=center>
 <img src="https://github.com/Yang-Yefeng/uav_consensus_rl_ros/blob/simulation/master/gif/four_drone_gazebo_test2.gif" width="400px">
 </div>
-Group 3 (中心点 8 字型，四个无人机偏移量不变):
+Demo 3 (中心点 8 字型，四个无人机偏移量不变):
 <div align=center>
 <img src="https://github.com/Yang-Yefeng/uav_consensus_rl_ros/blob/simulation/master/gif/four_drone_gazebo_test3.gif" width="400px">
 </div>
-
+Demo 4 (四个无人机在小车上方跟随)
+<div align=center>
+<img src="https://github.com/Yang-Yefeng/uav_consensus_rl_ros/blob/simulation/master/gif/four_drone_gazebo_test3.gif" width="400px">
+</div>
 <!-- ## 多智能体实验
 挺麻烦的，写在 master 的README.md 里面了 -->

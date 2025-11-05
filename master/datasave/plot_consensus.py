@@ -6,6 +6,7 @@ import os, sys
 
 def plot_pos_consensus():
     n = len(controlData)
+    # print(controlData)
     L = controlData[0].shape[0]
     plt.figure(figsize=(12, 8))
     plt.subplots_adjust(left=0.05, right=0.97, top=0.95, bottom=0.07)

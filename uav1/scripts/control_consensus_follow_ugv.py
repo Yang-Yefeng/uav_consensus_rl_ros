@@ -175,7 +175,8 @@ if __name__ == "__main__":
                           'dot_angle': uav_ros.uav_dot_att()}
             data_record.record(data_block)
             
-            if data_record.index == data_record.N:
+            # if data_record.index == data_record.N:
+            if t_now > time_max:
                 print('Data collection finish. Switching to offboard position...')
                 save_path = cur_ws + 'uav1/scripts/datasave/uav1/'
                 if not os.path.exists(save_path):

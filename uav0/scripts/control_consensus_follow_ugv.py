@@ -5,6 +5,7 @@ from control.uav_ros_consensus import UAV_ROS_Consensus
 from control.FNTSMC import fntsmc_param, fntsmc_consensus
 from control.RFNTSMC import rfntsmc_param, rfntsmc_consensus
 from control.FTPD import ftpd
+import pandas as pd
 from control.PDT_FNTSMC import pdt_fntsmc_param, pdt_fntsmc_consensus
 from control.observer import robust_differentiator_3rd as rd3
 from control.observer import predefined_time_do as pdt_do
@@ -77,6 +78,8 @@ if __name__ == "__main__":
 
     uav_ros.pos0 = np.array([gazebo_offset[0], gazebo_offset[1], 2])
     # print(uav_ros.pos0)
+
+    # ugv_data = pd.read_csv('../data_for_ugv/filtered_map_vel01.csv')
 
     while not rospy.is_shutdown():
         t = rospy.Time.now().to_sec()
@@ -176,7 +179,8 @@ if __name__ == "__main__":
                           'dot_angle': uav_ros.uav_dot_att()}
             data_record.record(data_block)
             
-            if data_record.index == data_record.N:
+            # if data_record.index == data_record.N:
+            if t_now > time_max:
                 print('Data collection finish. Switching to offboard position...')
                 save_path = cur_ws + 'uav0/scripts/datasave/uav0/'
                 if not os.path.exists(save_path):

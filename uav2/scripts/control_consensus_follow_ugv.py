@@ -27,7 +27,7 @@ if __name__ == "__main__":
     CONTROLLER = rospy.get_param('/global_config/controller')
     use_obs = rospy.get_param('/global_config/use_obs')
     uav_existance = rospy.get_param('/global_config/uav_existance')
-    gazebo_offset = np.array(rospy.get_param('/global_config/gazebo_offset')[ID])    # 这个索引要改
+    # gazebo_offset = np.array(rospy.get_param('/global_config/gazebo_offset')[ID])    # 这个索引要改
     '''load some global configuration parameters'''
 
     if CONTROLLER == 'RFNTSMC':
@@ -75,15 +75,15 @@ if __name__ == "__main__":
 
     t0 = rospy.Time.now().to_sec()
 
-    uav_ros.pos0 = np.array([gazebo_offset[0], gazebo_offset[1], 2])
-
     while not rospy.is_shutdown():
         t = rospy.Time.now().to_sec()
 
         '''1. generate reference command and uncertainty'''
         _index = min(uav_ros.n, TOTAL_SEQ - 1)
+
         ref = uav_ros.get_ugv_pos()
         dot_ref = uav_ros.get_ugv_vel()
+
         dot2_ref = np.zeros(3)
         nu, dot_nu, dot2_nu = offset_uav(_index * dt, oa, op, oba, obp)
         observe = np.zeros(3)
@@ -124,9 +124,9 @@ if __name__ == "__main__":
             '''3. Update the parameters of FNTSMC if RL is used'''
             if CONTROLLER == 'PX4-PID':
                 print(ref)
-                uav_ros.pose.pose.position.x = ref[0] + nu[0] - gazebo_offset[0]
-                uav_ros.pose.pose.position.y = ref[1] + nu[1] - gazebo_offset[1]
-                uav_ros.pose.pose.position.z = ref[2] + nu[2] - gazebo_offset[2]
+                uav_ros.pose.pose.position.x = ref[0] + nu[0] - uav_ros.offset[0]
+                uav_ros.pose.pose.position.y = ref[1] + nu[1] - uav_ros.offset[1]
+                uav_ros.pose.pose.position.z = ref[2] + nu[2] - uav_ros.offset[2]
                 uav_ros.local_pos_pub.publish(uav_ros.pose)
                 phi_d, theta_d, uf = 0., 0., 0.
             else:
@@ -186,15 +186,15 @@ if __name__ == "__main__":
                 uav_ros.global_flag = 3
         elif uav_ros.global_flag == 3:  # finish, back to position
             uav_ros.uav_msg[ID].are_you_ok.data = True
-            uav_ros.pose.pose.position.x = uav_ros.pos0[0] - gazebo_offset[0]
-            uav_ros.pose.pose.position.y = uav_ros.pos0[1] - gazebo_offset[1]
-            uav_ros.pose.pose.position.z = uav_ros.pos0[2] - gazebo_offset[2]
+            uav_ros.pose.pose.position.x = 0.
+            uav_ros.pose.pose.position.y = 0.
+            uav_ros.pose.pose.position.z = 0.3
             uav_ros.local_pos_pub.publish(uav_ros.pose)
         else:
             uav_ros.uav_msg[ID].are_you_ok.data = True
-            uav_ros.pose.pose.position.x = uav_ros.pos0[0] - gazebo_offset[0]
-            uav_ros.pose.pose.position.y = uav_ros.pos0[1] - gazebo_offset[1]
-            uav_ros.pose.pose.position.z = uav_ros.pos0[2] - gazebo_offset[2]
+            uav_ros.pose.pose.position.x = 0.
+            uav_ros.pose.pose.position.y = 0.
+            uav_ros.pose.pose.position.z = 0.3
             uav_ros.local_pos_pub.publish(uav_ros.pose)
             print('working mode error...')
 

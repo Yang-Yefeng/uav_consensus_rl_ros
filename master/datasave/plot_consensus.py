@@ -154,6 +154,27 @@ def plot_obs_consensus():
             plt.title('observe dz')
 
 
+def plot_pos_consensus_xy():
+    n = len(controlData)
+    L = controlData[0].shape[0]
+    plt.figure(figsize=(12, 8))
+    plt.subplots_adjust(left=0.05, right=0.97, top=0.95, bottom=0.07)
+    plt.axis('equal')
+    for i in range(n):
+        uav_pos = uav_stateData[i][0: L - 2, 1: 4]
+        plt.subplot(1, n, i + 1)
+        plt.plot(uav_pos[:, 0], uav_pos[:, 1], 'blue')
+        plt.grid(True)
+        x_min = np.min(uav_pos[:, 0])
+        x_max = np.max(uav_pos[:, 0])
+        y_min = np.min(uav_pos[:, 1])
+        y_max = np.max(uav_pos[:, 1])
+        plt.ylim((round(x_min - 1), round(x_max + 1)))
+        plt.ylim((round(y_min - 1), round(y_max + 1)))
+        plt.xlabel('x (m)')
+        plt.ylabel('y (m)')
+
+
 if __name__ == '__main__':
     """
     Data formation:
@@ -180,7 +201,8 @@ if __name__ == '__main__':
         ref_cmdData.append(pd.read_csv(path + uav_index[i] + '/ref_cmd.csv', header=0).to_numpy())
         uav_stateData.append(pd.read_csv(path + uav_index[i] + '/uav_state.csv', header=0).to_numpy())
     
-    plot_pos_consensus()
+    # plot_pos_consensus()
+    plot_pos_consensus_xy()
     # plot_att_consensus()
     # plot_thrust_consensus()
     # plot_throttle_consensus()
